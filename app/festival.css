@@ -1,0 +1,23 @@
+html { scroll-behavior: auto; }
+.festival-page {
+  width: 100%;
+  max-width: none;
+  margin-inline: auto;
+  background: var(--color-kit-paper);
+  color: var(--color-kit-purple);
+  container-type: inline-size;
+}
+.festival-page h1, .festival-page h2, .festival-page h3 { font-weight: 800; }
+.festival-about { padding-top: 100px; }
+.festival-partners { padding-top: 60px; }
+.festival-schedule, .festival-speakers, .festival-registration { padding-top: 100px; }
+.festival-page section[id] { scroll-margin-top: calc(120 * 100cqw / 1440); }
+@media (max-width: 767px) {
+  .festival-about { padding-top: 40px; }
+  .festival-schedule, .festival-registration { padding-top: 80px; }
+  .festival-speakers { padding-top: 60px; }
+  .festival-partners { padding-top: 40px; }
+}
+@media (max-width: 900px) { .festival-page section[id] { scroll-margin-top: 180px; } }
+@media (max-width: 767px) { .festival-page section[id] { scroll-margin-top: 89px; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

@@ -1,0 +1,393 @@
+.about,
+.partners {
+  width: calc(100% - 80px);
+  margin-inline: auto;
+}
+
+.about {
+  color: var(--color-kit-ink);
+  scroll-margin-top: 100px;
+}
+
+.heading,
+.benefitsHeading {
+  margin: 0;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.heading {
+  color: var(--color-kit-purple);
+  font-size: 46px;
+}
+
+.introduction {
+  max-width: 724px;
+  margin: 20px auto 40px;
+  font-family: var(--font-body), sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: center;
+}
+
+.stats,
+.benefits {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin: 0;
+}
+
+.stat {
+  display: flex;
+  height: 130px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 20px;
+  background: var(--color-kit-lime);
+}
+
+.stat:nth-child(2) {
+  background: #ffb3e0;
+}
+
+.stat dt {
+  color: var(--color-kit-purple);
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 40px;
+}
+
+.stat dd {
+  margin: 0;
+  font-family: var(--font-body), sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: center;
+}
+
+.benefitsHeading {
+  margin: 60px 0 40px;
+  color: var(--color-kit-pink);
+  font-size: 36px;
+}
+
+.card {
+  position: relative;
+  height: 500px;
+  overflow: hidden;
+  padding: 30px;
+  border-radius: 20px;
+  background: #ffb3e0;
+}
+
+.network {
+  background: var(--color-kit-lime);
+}
+
+.number,
+.cardTitle {
+  position: relative;
+  z-index: 1;
+  display: block;
+  margin: 0;
+  color: var(--color-kit-purple);
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 800;
+  line-height: 25px;
+  text-transform: uppercase;
+}
+
+.number,
+.cardTitle {
+  margin-left: -1px;
+}
+
+.cardTitle {
+  margin-top: 15px;
+}
+
+.description {
+  position: relative;
+  z-index: 1;
+  max-width: 336px;
+  margin: 29px 0 0;
+  color: #000;
+  font-family: var(--font-body), sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.network .description {
+  max-width: 357px;
+}
+
+.star,
+.person {
+  position: absolute;
+  max-width: none;
+  height: auto;
+  pointer-events: none;
+}
+
+.star {
+  left: -2.27257%;
+  bottom: 7.6723px;
+  width: 110%;
+}
+
+.person {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+.network .star {
+  left: -12.04554%;
+  bottom: 11px;
+  width: 123.9915%;
+}
+
+.speakers .star {
+  left: -2.95432%;
+  bottom: -9.9982px;
+}
+
+.speakers .person {
+  left: 0.22727%;
+  width: 99.77273%;
+}
+
+.partners {
+  height: 210px;
+  overflow: hidden;
+  padding-block: 30px;
+  border-radius: 20px;
+  background: #ffb3e0;
+}
+
+.partnerTrack {
+  display: flex;
+  width: max-content;
+  margin-left: -30px;
+  animation: partnerMarquee 120s linear infinite;
+}
+
+.partnerGroup {
+  display: flex;
+  flex-shrink: 0;
+  min-width: 100cqw;
+  justify-content: space-around;
+  gap: 15px;
+  padding-right: 15px;
+}
+
+.partnerLogo {
+  flex: 0 0 230px;
+  width: 230px;
+}
+
+.partnerLogo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.partners[data-running="false"] .partnerTrack,
+.partners:hover .partnerTrack,
+.partners:focus-within .partnerTrack {
+  animation-play-state: paused;
+}
+
+@keyframes partnerMarquee {
+  to { transform: translateX(-50%); }
+}
+
+@media (min-width: 1441px) {
+  .card {
+    height: auto;
+    min-height: 500px;
+    aspect-ratio: 440 / 500;
+  }
+}
+
+@media (max-width: 1100px) {
+  .benefits {
+    grid-template-columns: minmax(0, 440px);
+    justify-content: center;
+  }
+
+  .stat dd {
+    padding-inline: 12px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 767px) {
+  .about {
+    width: calc(100% - 40px);
+  }
+
+  .heading {
+    font-size: 25px;
+  }
+
+  .introduction {
+    margin: 20px auto 40px;
+    font-size: 16px;
+    line-height: 16px;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .stat {
+    height: 94px;
+    gap: 5px;
+    border-radius: 15px;
+  }
+
+  .stat dt {
+    font-size: 35px;
+    line-height: 35px;
+  }
+
+  .stat dd {
+    font-size: 14px;
+    line-height: 14px;
+  }
+
+  .benefitsHeading {
+    margin-block: 40px 20px;
+    font-size: 20px;
+  }
+
+  .benefits {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 15px;
+  }
+
+  .card {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 396px;
+    aspect-ratio: 350 / 396;
+    padding: 25px;
+  }
+
+  .number,
+  .cardTitle {
+    margin-left: 0;
+    font-size: 16px;
+  }
+
+  .number {
+    line-height: 16px;
+  }
+
+  .cardTitle {
+    margin-top: 10px;
+    line-height: 1.1;
+  }
+
+  .description {
+    max-width: 300px;
+    margin-top: 20.8px;
+    font-size: 14px;
+    line-height: 14px;
+    overflow-wrap: anywhere;
+  }
+
+  .network .description {
+    max-width: 280px;
+  }
+
+  .speakers .description {
+    max-width: 262px;
+  }
+
+  .star {
+    left: -0.12905%;
+    bottom: 15px;
+    width: 101.43771%;
+  }
+
+  .network .star {
+    left: 0.00693%;
+    bottom: 21px;
+    width: 102.19838%;
+  }
+
+  .speakers .star {
+    left: -0.11854%;
+    bottom: 19px;
+    width: 103.78411%;
+  }
+
+  .speakers .person {
+    left: 0;
+    width: 100%;
+  }
+
+  .partners {
+    width: 100%;
+    height: 105px;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .partnerTrack {
+    margin-left: -40px;
+  }
+
+  .partnerGroup {
+    gap: 15px;
+    padding-right: 15px;
+  }
+
+  .partnerLogo {
+    flex-basis: 165px;
+    width: 165px;
+  }
+
+  .partnerLogo:nth-child(even) {
+    flex-basis: 163px;
+    width: 163px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partners {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .partnerTrack {
+    margin-left: 0;
+    padding-inline: 20px;
+    animation: none;
+  }
+
+  .partnerGroup {
+    min-width: 0;
+  }
+
+  .partnerGroup[aria-hidden="true"],
+  .partnerFiller {
+    display: none;
+  }
+}

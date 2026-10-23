@@ -1,0 +1,362 @@
+[
+  {
+    "source": "public/assets/figma/hero-desktop.jpg",
+    "target": "public/assets/figma/hero-desktop.webp",
+    "before": 1029390,
+    "after": 133828,
+    "width": 1440,
+    "height": 960
+  },
+  {
+    "source": "public/assets/figma/hero-mobile.jpg",
+    "target": "public/assets/figma/hero-mobile.webp",
+    "before": 265112,
+    "after": 40116,
+    "width": 390,
+    "height": 633
+  },
+  {
+    "source": "public/assets/figma/partner-1.png",
+    "target": "public/assets/figma/partner-1.webp",
+    "before": 9421,
+    "after": 5498,
+    "width": 230,
+    "height": 150
+  },
+  {
+    "source": "public/assets/figma/partner-2.png",
+    "target": "public/assets/figma/partner-2.webp",
+    "before": 4078,
+    "after": 1628,
+    "width": 230,
+    "height": 150
+  },
+  {
+    "source": "public/assets/figma/photo-1.png",
+    "target": "public/assets/figma/photo-1.webp",
+    "before": 87489,
+    "after": 10198,
+    "width": 190,
+    "height": 280
+  },
+  {
+    "source": "public/assets/figma/photo-2.png",
+    "target": "public/assets/figma/photo-2.webp",
+    "before": 143868,
+    "after": 18076,
+    "width": 240,
+    "height": 330
+  },
+  {
+    "source": "public/assets/figma/photo-3.png",
+    "target": "public/assets/figma/photo-3.webp",
+    "before": 81971,
+    "after": 7778,
+    "width": 240,
+    "height": 280
+  },
+  {
+    "source": "public/assets/figma/photo-4.png",
+    "target": "public/assets/figma/photo-4.webp",
+    "before": 127997,
+    "after": 17878,
+    "width": 240,
+    "height": 360
+  },
+  {
+    "source": "public/assets/figma/photo-5.png",
+    "target": "public/assets/figma/photo-5.webp",
+    "before": 135224,
+    "after": 17580,
+    "width": 240,
+    "height": 300
+  },
+  {
+    "source": "public/assets/figma/photo-6.png",
+    "target": "public/assets/figma/photo-6.webp",
+    "before": 93044,
+    "after": 12286,
+    "width": 190,
+    "height": 280
+  },
+  {
+    "source": "public/assets/figma/star-left.png",
+    "target": "public/assets/figma/star-left.webp",
+    "before": 4391,
+    "after": 1632,
+    "width": 235,
+    "height": 191
+  },
+  {
+    "source": "public/assets/figma/star-right.png",
+    "target": "public/assets/figma/star-right.webp",
+    "before": 4274,
+    "after": 1628,
+    "width": 235,
+    "height": 191
+  },
+  {
+    "source": "public/assets/mobile/about-partner-1.png",
+    "target": "public/assets/mobile/about-partner-1.webp",
+    "before": 15638,
+    "after": 8592,
+    "width": 330,
+    "height": 210
+  },
+  {
+    "source": "public/assets/mobile/about-partner-2.png",
+    "target": "public/assets/mobile/about-partner-2.webp",
+    "before": 7069,
+    "after": 3478,
+    "width": 326,
+    "height": 210
+  },
+  {
+    "source": "public/assets/mobile/about-person-network.png",
+    "target": "public/assets/mobile/about-person-network.webp",
+    "before": 270183,
+    "after": 40898,
+    "width": 700,
+    "height": 448
+  },
+  {
+    "source": "public/assets/mobile/about-person-practice.png",
+    "target": "public/assets/mobile/about-person-practice.webp",
+    "before": 269206,
+    "after": 45678,
+    "width": 700,
+    "height": 484
+  },
+  {
+    "source": "public/assets/mobile/about-person-speakers.png",
+    "target": "public/assets/mobile/about-person-speakers.webp",
+    "before": 248243,
+    "after": 42368,
+    "width": 700,
+    "height": 434
+  },
+  {
+    "source": "public/assets/mobile/about-star-network.png",
+    "target": "public/assets/mobile/about-star-network.webp",
+    "before": 13224,
+    "after": 4720,
+    "width": 716,
+    "height": 337
+  },
+  {
+    "source": "public/assets/mobile/about-star-practice.png",
+    "target": "public/assets/mobile/about-star-practice.webp",
+    "before": 16115,
+    "after": 5722,
+    "width": 711,
+    "height": 415
+  },
+  {
+    "source": "public/assets/mobile/about-star-speakers.png",
+    "target": "public/assets/mobile/about-star-speakers.webp",
+    "before": 16604,
+    "after": 5874,
+    "width": 727,
+    "height": 424
+  },
+  {
+    "source": "public/assets/mobile/countdown-star.png",
+    "target": "public/assets/mobile/countdown-star.webp",
+    "before": 4092,
+    "after": 1460,
+    "width": 260,
+    "height": 341
+  },
+  {
+    "source": "public/assets/mobile/eyes.png",
+    "target": "public/assets/mobile/eyes.webp",
+    "before": 3615,
+    "after": 1500,
+    "width": 106,
+    "height": 89
+  },
+  {
+    "source": "public/assets/mobile/peace.png",
+    "target": "public/assets/mobile/peace.webp",
+    "before": 5342,
+    "after": 2002,
+    "width": 142,
+    "height": 143
+  },
+  {
+    "source": "public/assets/mobile/prediction-paper-shadow.png",
+    "target": "public/assets/mobile/prediction-paper-shadow.webp",
+    "before": 4339,
+    "after": 1054,
+    "width": 623,
+    "height": 407
+  },
+  {
+    "source": "public/assets/page/about-person-network.png",
+    "target": "public/assets/page/about-person-network.webp",
+    "before": 401636,
+    "after": 56764,
+    "width": 880,
+    "height": 562
+  },
+  {
+    "source": "public/assets/page/about-person-practice.png",
+    "target": "public/assets/page/about-person-practice.webp",
+    "before": 405737,
+    "after": 64012,
+    "width": 880,
+    "height": 608
+  },
+  {
+    "source": "public/assets/page/about-person-speakers.png",
+    "target": "public/assets/page/about-person-speakers.webp",
+    "before": 374568,
+    "after": 60172,
+    "width": 878,
+    "height": 546
+  },
+  {
+    "source": "public/assets/page/about-star-network.png",
+    "target": "public/assets/page/about-star-network.webp",
+    "before": 36411,
+    "after": 11124,
+    "width": 1092,
+    "height": 514
+  },
+  {
+    "source": "public/assets/page/about-star-practice.png",
+    "target": "public/assets/page/about-star-practice.webp",
+    "before": 47851,
+    "after": 12968,
+    "width": 968,
+    "height": 565
+  },
+  {
+    "source": "public/assets/page/about-star-speakers.png",
+    "target": "public/assets/page/about-star-speakers.webp",
+    "before": 47846,
+    "after": 12872,
+    "width": 968,
+    "height": 565
+  },
+  {
+    "source": "public/assets/page/mobile/reg-star-left.png",
+    "target": "public/assets/page/mobile/reg-star-left.webp",
+    "before": 30024,
+    "after": 9314,
+    "width": 484,
+    "height": 320
+  },
+  {
+    "source": "public/assets/page/mobile/reg-star-right.png",
+    "target": "public/assets/page/mobile/reg-star-right.webp",
+    "before": 13077,
+    "after": 4618,
+    "width": 230,
+    "height": 160
+  },
+  {
+    "source": "public/assets/page/prediction-paper-shadow.png",
+    "target": "public/assets/page/prediction-paper-shadow.webp",
+    "before": 5532,
+    "after": 1200,
+    "width": 898,
+    "height": 429
+  },
+  {
+    "source": "public/assets/page/prediction-person.png",
+    "target": "public/assets/page/prediction-person.webp",
+    "before": 759175,
+    "after": 128540,
+    "width": 894,
+    "height": 724
+  },
+  {
+    "source": "public/assets/page/prediction-star-left.png",
+    "target": "public/assets/page/prediction-star-left.webp",
+    "before": 37374,
+    "after": 9788,
+    "width": 516,
+    "height": 370
+  },
+  {
+    "source": "public/assets/page/prediction-star-right.png",
+    "target": "public/assets/page/prediction-star-right.webp",
+    "before": 16142,
+    "after": 5328,
+    "width": 315,
+    "height": 186
+  },
+  {
+    "source": "public/assets/page/top-countdown-star.png",
+    "target": "public/assets/page/top-countdown-star.webp",
+    "before": 7863,
+    "after": 2838,
+    "width": 470,
+    "height": 381
+  },
+  {
+    "source": "public/assets/page/top-eyes.png",
+    "target": "public/assets/page/top-eyes.webp",
+    "before": 6979,
+    "after": 2762,
+    "width": 177,
+    "height": 149
+  },
+  {
+    "source": "public/assets/page/top-peace.png",
+    "target": "public/assets/page/top-peace.webp",
+    "before": 8310,
+    "after": 2998,
+    "width": 225,
+    "height": 226
+  },
+  {
+    "source": "design/mobile/history-photo-1-full.png",
+    "target": "public/assets/page/top-photo-1.webp",
+    "before": 341452,
+    "after": 36360,
+    "width": 480,
+    "height": 560
+  },
+  {
+    "source": "public/assets/page/top-photo-2.png",
+    "target": "public/assets/page/top-photo-2.webp",
+    "before": 435792,
+    "after": 50776,
+    "width": 480,
+    "height": 660
+  },
+  {
+    "source": "public/assets/page/top-photo-3.png",
+    "target": "public/assets/page/top-photo-3.webp",
+    "before": 218989,
+    "after": 21084,
+    "width": 480,
+    "height": 560
+  },
+  {
+    "source": "public/assets/page/top-photo-4.png",
+    "target": "public/assets/page/top-photo-4.webp",
+    "before": 390709,
+    "after": 43388,
+    "width": 480,
+    "height": 720
+  },
+  {
+    "source": "public/assets/page/top-photo-5.png",
+    "target": "public/assets/page/top-photo-5.webp",
+    "before": 431677,
+    "after": 51104,
+    "width": 480,
+    "height": 600
+  },
+  {
+    "source": "design/mobile/history-photo-6-full.png",
+    "target": "public/assets/page/top-photo-6.webp",
+    "before": 342145,
+    "after": 35634,
+    "width": 480,
+    "height": 560
+  }
+]

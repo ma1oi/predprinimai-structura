@@ -1,0 +1,22 @@
+@theme {
+  --color-kit-purple: #4200f6;
+  --color-kit-purple-hover: #3d01df;
+  --color-kit-pink: #f238a7;
+  --color-kit-pink-hover: #f71d9f;
+  --color-kit-lime: #cff665;
+  --color-kit-paper: #f9f9f9;
+  --color-kit-ink: #010023;
+  --color-kit-canvas: #d2d2d2;
+  --font-display: var(--font-neue-machina), sans-serif;
+  --font-body: "Roboto", sans-serif;
+  --font-golos: "Golos Text", sans-serif;
+  --font-prediction: var(--font-leo-hand), cursive;
+  --color-kit-lavender: #eee7ff;
+}
+
+:root {
+  --kit-unit: 1px;
+  --kit-radius-photo: 20px;
+  --kit-radius-menu: 15px;
+  --kit-motion: 180ms;
+}

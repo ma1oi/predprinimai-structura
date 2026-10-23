@@ -1,0 +1,7 @@
+{
+  "speakers": [
+    { "id": "soon", "name": "Имя спикера скоро объявим", "job": "", "topic": "Тема выступления", "time": "Время", "photo": "", "color": "lime", "published": true, "art": "blue" },
+    { "id": "name", "name": "Имя фамилия", "job": "Должность", "topic": "Тема выступления", "time": "Время", "photo": "", "color": "lavender", "published": true, "art": "pink" },
+    { "id": "zaikina", "name": "Мария Заикина", "job": "Директор по В2В‑маркетингу и коммуникациям Озон", "topic": "Тема выступления", "time": "Время", "photo": "", "color": "pink", "published": true, "art": "blue" }
+  ]
+}

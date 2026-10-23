@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+.DS_Store
+.env*
+!.env.example
+
+# Local speaker records and uploaded photos
+.data/
+
+# Local admin screenshots may contain registration details
+design/**/*admin*.png
