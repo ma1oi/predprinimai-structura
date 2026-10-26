@@ -175,6 +175,14 @@ function subscribeToMotionPreference(update: () => void) {
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const serverMotionPreference = () => true;
 
+function subscribeToMobileLayout(update: () => void) {
+  const query = window.matchMedia("(max-width: 767px)");
+  query.addEventListener("change", update);
+  return () => query.removeEventListener("change", update);
+}
+const isMobileLayout = () => window.matchMedia("(max-width: 767px)").matches;
+const serverMobileLayout = () => false;
+
 export function SpeakersSection({ initialSpeakers }: { initialSpeakers: Speaker[] }) {
   const [speakers, setSpeakers] = useState(initialSpeakers);
 
@@ -213,13 +221,25 @@ function SpeakersCarousel({ speakers }: { speakers: Speaker[] }) {
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [interacting, setInteracting] = useState(false);
   const section = useRef<HTMLElement>(null);
+  const gallery = useRef<HTMLDivElement>(null);
+  const interactingRef = useRef(false);
   const movingRef = useRef(false);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const reducedMotion = useSyncExternalStore(subscribeToMotionPreference, prefersReducedMotion, serverMotionPreference);
+  const mobile = useSyncExternalStore(subscribeToMobileLayout, isMobileLayout, serverMobileLayout);
 
   const move = useCallback((direction: number) => {
-    if (count < 2 || movingRef.current) return;
+    if (count < 2) return;
+    if (mobile && gallery.current) {
+      const viewport = gallery.current;
+      const track = viewport.firstElementChild as HTMLElement;
+      const step = (track.firstElementChild as HTMLElement).offsetWidth + parseFloat(getComputedStyle(track).columnGap);
+      viewport.scrollTo({ left: (Math.round(viewport.scrollLeft / step) + direction) * step, behavior: reducedMotion ? "instant" : "smooth" });
+      return;
+    }
+    if (movingRef.current) return;
     if (reducedMotion) {
       setPosition((current) => ((current + direction) % count + count) % count);
       return;
@@ -227,13 +247,54 @@ function SpeakersCarousel({ speakers }: { speakers: Speaker[] }) {
     movingRef.current = true;
     setMoving(true);
     setPosition((current) => ((current % count + count) % count) + direction);
-  }, [reducedMotion, count]);
+  }, [reducedMotion, count, mobile]);
 
   const finishMove = useCallback(() => {
     setMoving(false);
     setPosition((current) => (current % count + count) % count);
     movingRef.current = false;
   }, [count]);
+
+  useEffect(() => {
+    const viewport = gallery.current;
+    if (!viewport) return;
+    if (!mobile) {
+      viewport.scrollLeft = 0;
+      return;
+    }
+    const track = viewport.firstElementChild as HTMLElement;
+    const step = (track.firstElementChild as HTMLElement).offsetWidth + parseFloat(getComputedStyle(track).columnGap);
+    const span = count * step;
+    viewport.scrollLeft = span;
+    let settleTimer: ReturnType<typeof setTimeout>;
+    const normalize = () => {
+      if (interactingRef.current) return;
+      const left = viewport.scrollLeft;
+      // Return to the identical middle copy only after native momentum and snapping settle.
+      if (left < span || left >= span * 2) {
+        viewport.scrollTo({ left: ((left - span) % span + span) % span + span, behavior: "instant" });
+      }
+    };
+    const onScroll = () => {
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(normalize, 220);
+    };
+    viewport.addEventListener("scroll", onScroll, { passive: true });
+    viewport.addEventListener("scrollend", normalize);
+    viewport.addEventListener("pointerup", onScroll);
+    viewport.addEventListener("pointercancel", onScroll);
+    viewport.addEventListener("touchend", onScroll, { passive: true });
+    viewport.addEventListener("touchcancel", onScroll, { passive: true });
+    return () => {
+      clearTimeout(settleTimer);
+      viewport.removeEventListener("scroll", onScroll);
+      viewport.removeEventListener("scrollend", normalize);
+      viewport.removeEventListener("pointerup", onScroll);
+      viewport.removeEventListener("pointercancel", onScroll);
+      viewport.removeEventListener("touchend", onScroll);
+      viewport.removeEventListener("touchcancel", onScroll);
+    };
+  }, [mobile, count]);
 
   useEffect(() => {
     const updateVisibility = () => setHidden(document.hidden);
@@ -250,10 +311,10 @@ function SpeakersCarousel({ speakers }: { speakers: Speaker[] }) {
   }, []);
 
   useEffect(() => {
-    if (count < 2 || reducedMotion || hovered || focused || hidden || !visible || document.hidden) return;
+    if (count < 2 || reducedMotion || hovered || focused || interacting || hidden || !visible || document.hidden) return;
     const timer = window.setInterval(() => move(1), 5000);
     return () => window.clearInterval(timer);
-  }, [count, reducedMotion, hovered, focused, hidden, visible, move]);
+  }, [count, reducedMotion, hovered, focused, interacting, hidden, visible, move]);
 
   // Also release the transition lock if a resize or preference change interrupts it.
   useEffect(() => {
@@ -269,8 +330,8 @@ function SpeakersCarousel({ speakers }: { speakers: Speaker[] }) {
       className={styles.speakers}
       aria-labelledby="speakers-heading"
       aria-roledescription="карусель"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onPointerEnter={(event) => { if (event.pointerType === "mouse") setHovered(true); }}
+      onPointerLeave={(event) => { if (event.pointerType === "mouse") setHovered(false); }}
       onFocusCapture={() => setFocused(true)}
       onBlurCapture={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
@@ -278,21 +339,52 @@ function SpeakersCarousel({ speakers }: { speakers: Speaker[] }) {
     >
       <h2 id="speakers-heading" className={`${styles.heading} ${styles.speakersHeading}`}>Кто будет на сцене</h2>
       <div
+        ref={gallery}
         className={`${styles.speakerGallery} ${count === 1 ? styles.singleSpeaker : ""}`}
+        tabIndex={mobile && count > 1 ? 0 : undefined}
+        onTouchStart={() => {
+          if (!mobile) return;
+          interactingRef.current = true;
+          setInteracting(true);
+        }}
+        onTouchEnd={() => {
+          interactingRef.current = false;
+          setInteracting(false);
+        }}
+        onTouchCancel={() => {
+          interactingRef.current = false;
+          setInteracting(false);
+        }}
         onPointerDown={(event) => {
+          if (mobile) {
+            interactingRef.current = true;
+            setInteracting(true);
+            return;
+          }
           if (event.pointerType !== "mouse") {
             touchStart.current = { x: event.clientX, y: event.clientY };
             event.currentTarget.setPointerCapture(event.pointerId);
           }
         }}
         onPointerUp={(event) => {
+          if (mobile) {
+            interactingRef.current = false;
+            setInteracting(false);
+            return;
+          }
           const start = touchStart.current;
           touchStart.current = null;
           if (!start) return;
           const distance = event.clientX - start.x;
           if (Math.abs(distance) > 35 && Math.abs(distance) > Math.abs(event.clientY - start.y)) move(distance < 0 ? 1 : -1);
         }}
-        onPointerCancel={() => { touchStart.current = null; }}
+        onPointerCancel={() => {
+          touchStart.current = null;
+          if (!mobile) {
+            interactingRef.current = false;
+            setInteracting(false);
+          }
+        }}
       >
         <div
           className={`${styles.speakerTrack} ${moving ? styles.moving : ""}`}

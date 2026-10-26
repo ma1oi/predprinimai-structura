@@ -22,7 +22,7 @@
 .submit img { width: calc(35 * var(--registration-unit)); height: calc(35 * var(--registration-unit)); margin-left: 0; }
 .formMessage:empty { display: none; }
 .formMessage { margin: 0; font: 400 14px/1.4 var(--font-body); color: var(--color-kit-purple); }
-.prediction { position: relative; aspect-ratio: 765 / 463; min-width: 0; border-radius: calc(30 * var(--registration-unit)); overflow: hidden; background: var(--color-kit-lavender); }
+.prediction { position: relative; min-height: calc(463 * var(--registration-unit)); min-width: 0; align-self: stretch; border-radius: calc(30 * var(--registration-unit)); overflow: hidden; background: var(--color-kit-lavender); }
 .prediction h3 { position: relative; z-index: 2; margin: calc(30 * var(--registration-unit)) auto 0; font-size: calc(30 * var(--registration-unit)); line-height: 1.1; text-align: center; text-transform: uppercase; }
 .starLeft { position: absolute; left: 0; top: 26.7%; width: 33.725%; height: auto; }
 .starRight { position: absolute; left: 76.07%; top: 33.33%; width: 20.65%; height: auto; }

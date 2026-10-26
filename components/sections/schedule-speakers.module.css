@@ -230,9 +230,10 @@
   .mobilePanfilov .mobileSpeakerCopy { padding-top: 1px; }
   .speakers { margin-inline: 20px; padding-bottom: 0; min-height: 576px; }
   .speakersHeading { padding-inline: 0; }
-  .speakerGallery { width: calc(100% + 40px); margin: 20px -20px 0; padding-inline: 20px; }
-  .speakerTrack { gap: 30px; transform: translateX(calc(var(--speaker-position) * -300px)); }
-  .speakerCard { flex: 0 0 270px; }
+  .speakerGallery { width: calc(100% + 40px); margin: 20px -20px 0; padding-inline: 20px; overflow-x: auto; touch-action: pan-x pan-y; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; overscroll-behavior-x: contain; scrollbar-width: none; }
+  .speakerGallery::-webkit-scrollbar { display: none; }
+  .speakerTrack, .speakerTrack.moving { gap: 30px; transform: none; transition: none; }
+  .speakerCard { flex: 0 0 270px; scroll-snap-align: start; }
   .speakerPortrait { height: 400px; aspect-ratio: 270 / 400; border-radius: 30px; }
   .speakerInfo { width: 270px; margin-top: 20px; }
   .speakerName { font-size: 16px; line-height: 18px; }
