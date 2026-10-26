@@ -26,10 +26,11 @@
   {
     "source": "public/assets/figma/partner-2.png",
     "target": "public/assets/figma/partner-2.webp",
-    "before": 4078,
-    "after": 1628,
+    "before": 5974,
+    "after": 3158,
     "width": 230,
-    "height": 150
+    "height": 150,
+    "note": "Full uncropped logo recovered from public/assets/mobile/about-partner-2.png; reproduce with node scripts/repair-partner-logo.mjs."
   },
   {
     "source": "public/assets/figma/photo-1.png",
