@@ -6,15 +6,16 @@ import type { ChangeEvent, FormEvent } from "react";
 import type { Speaker, SpeakerDocument } from "@/lib/speaker-types";
 import { RegistrationsAdmin } from "./registrations-admin";
 import { ProgramSpeakersAdmin } from "./program-speakers-admin";
+import { PartnersAdmin } from "./partners-admin";
 import styles from "./admin.module.css";
 
 type Session = "checking" | "guest" | "authenticated";
 type Confirmation = "reload" | "logout" | null;
-type AdminSection = "speakers" | "registrations" | "program";
+type AdminSection = "speakers" | "registrations" | "program" | "partners";
 
 function currentSection(): AdminSection {
   const tab = new URLSearchParams(window.location.search).get("tab");
-  return tab === "registrations" || tab === "program" ? tab : "speakers";
+  return tab === "registrations" || tab === "program" || tab === "partners" ? tab : "speakers";
 }
 
 class ApiError extends Error {
@@ -37,6 +38,8 @@ export function SpeakersAdmin() {
   const [section, setSection] = useState<AdminSection>("speakers");
   const [programState, setProgramState] = useState({ dirty: false, busy: false });
   const [programKey, setProgramKey] = useState(0);
+  const [partnersState, setPartnersState] = useState({ dirty: false, busy: false });
+  const [partnersKey, setPartnersKey] = useState(0);
   const [configured, setConfigured] = useState(true);
   const [password, setPassword] = useState("");
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
@@ -55,7 +58,7 @@ export function SpeakersAdmin() {
   const editorRef = useRef<HTMLElement>(null);
   const dirty = loaded && JSON.stringify(speakers) !== saved;
   const selected = speakers.find((speaker) => speaker.id === selectedId);
-  const locked = busy || uploading || programState.busy;
+  const locked = busy || uploading || programState.busy || partnersState.busy;
 
   const expireSession = useCallback(() => {
     setSession("guest");
@@ -144,6 +147,7 @@ export function SpeakersAdmin() {
       setSession("guest"); setSpeakers([]); setSaved("[]"); setLoaded(false); setRevision("");
       setSelectedId(null); setConfirmation(null); setSuccess(""); setConflict(false);
       setProgramKey((current) => current + 1); setProgramState({ dirty: false, busy: false });
+      setPartnersKey((current) => current + 1); setPartnersState({ dirty: false, busy: false });
     } catch (reason) { handleError(reason); }
     finally { setBusy(false); }
   }
@@ -210,18 +214,19 @@ export function SpeakersAdmin() {
   </>;
 
   return <div className={styles.shell}>
-    <header className={styles.header}><a className={styles.brand} href="/" target="_blank" rel="noopener noreferrer">предпринимай</a><span className={styles.headerLabel}>Управление сайтом</span>{session === "authenticated" && <button className={styles.logout} disabled={locked} onClick={() => dirty || programState.dirty ? setConfirmation("logout") : void logout()}>Выйти</button>}</header>
+    <header className={styles.header}><a className={styles.brand} href="/" target="_blank" rel="noopener noreferrer">предпринимай</a><span className={styles.headerLabel}>Управление сайтом</span>{session === "authenticated" && <button className={styles.logout} disabled={locked} onClick={() => dirty || programState.dirty || partnersState.dirty ? setConfirmation("logout") : void logout()}>Выйти</button>}</header>
     {session === "checking" ? <main className={styles.login}><h1>Вход в управление</h1><p role="status">Проверяем вход…</p></main> : session === "guest" ? <main className={styles.login}>
-      <h1>Управление сайтом</h1><p className={styles.muted}>Войдите, чтобы редактировать спикеров и фотографии в программе, просматривать заявки и скачивать их в Excel.</p>
+      <h1>Управление сайтом</h1><p className={styles.muted}>Войдите, чтобы редактировать спикеров, партнёров и фотографии в программе, просматривать заявки и скачивать их в Excel.</p>
       {notices}
       {!configured ? <p className={styles.error} role="alert">Вход ещё не настроен. Добавьте пароль администратора в настройки сервера.</p> : <form onSubmit={login} className={styles.loginForm}><label htmlFor="admin-password">Пароль администратора</label><input id="admin-password" name="password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} disabled={busy} autoFocus /><button className={styles.primary} type="submit" disabled={busy || !password}>{busy ? "Входим…" : "Войти"}</button></form>}
       <a className={styles.textLink} href="/" target="_blank" rel="noopener noreferrer">Открыть сайт</a>
     </main> : null}
     <main className={styles.main} hidden={session !== "authenticated"}>
-      <nav className={styles.sectionNav} aria-label="Разделы управления"><button type="button" aria-pressed={section === "speakers"} aria-controls="speakers-section" onClick={() => changeSection("speakers")}>Спикеры{dirty && <><span className={styles.unsavedDot} aria-hidden="true" /><span className={styles.srOnly}> — есть несохранённые изменения</span></>}</button><button type="button" aria-pressed={section === "registrations"} aria-controls="registrations-section" onClick={() => changeSection("registrations")}>Заявки</button><button type="button" aria-pressed={section === "program"} aria-controls="program-section" onClick={() => changeSection("program")}>Программа{programState.dirty && <><span className={styles.unsavedDot} aria-hidden="true" /><span className={styles.srOnly}> — есть несохранённые изменения</span></>}</button></nav>
+      <nav className={styles.sectionNav} aria-label="Разделы управления"><button type="button" aria-pressed={section === "speakers"} aria-controls="speakers-section" onClick={() => changeSection("speakers")}>Спикеры{dirty && <><span className={styles.unsavedDot} aria-hidden="true" /><span className={styles.srOnly}> — есть несохранённые изменения</span></>}</button><button type="button" aria-pressed={section === "registrations"} aria-controls="registrations-section" onClick={() => changeSection("registrations")}>Заявки</button><button type="button" aria-pressed={section === "program"} aria-controls="program-section" onClick={() => changeSection("program")}>Программа{programState.dirty && <><span className={styles.unsavedDot} aria-hidden="true" /><span className={styles.srOnly}> — есть несохранённые изменения</span></>}</button><button type="button" aria-pressed={section === "partners"} aria-controls="partners-section" onClick={() => changeSection("partners")}>Партнёры{partnersState.dirty && <><span className={styles.unsavedDot} aria-hidden="true" /><span className={styles.srOnly}> — есть несохранённые изменения</span></>}</button></nav>
       {notices}
       <section id="registrations-section" aria-label="Заявки" hidden={section !== "registrations"}>{session === "authenticated" && section === "registrations" && <RegistrationsAdmin onSessionExpired={expireSession} />}</section>
       <section id="program-section" aria-label="Программа" hidden={section !== "program"}><ProgramSpeakersAdmin key={programKey} active={session === "authenticated" && section === "program"} onSessionExpired={expireSession} onStateChange={setProgramState} /></section>
+      <section id="partners-section" aria-label="Партнёры" hidden={section !== "partners"}><PartnersAdmin key={partnersKey} active={session === "authenticated" && section === "partners"} onSessionExpired={expireSession} onStateChange={setPartnersState} /></section>
       <section id="speakers-section" aria-label="Спикеры" hidden={section !== "speakers"}>
       <div className={styles.pageHeading}><div><h1>Спикеры</h1><p className={styles.muted}>Карточки, порядок и видимость на сайте фестиваля.</p></div><a className={styles.previewLink} href="/#speakers" target="_blank" rel="noopener noreferrer">Посмотреть на сайте <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6 4h10v10M16 4 4 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></a></div>
       {!loaded ? <section className={styles.loading} aria-busy={busy}><h2>{busy ? "Загружаем спикеров…" : "Не удалось загрузить список"}</h2>{!busy && <button className={styles.secondary} onClick={() => void reload()}>Повторить загрузку</button>}</section> : <>

@@ -180,7 +180,7 @@
   display: flex;
   width: max-content;
   margin-left: -30px;
-  animation: partnerMarquee 120s linear infinite;
+  animation: partnerMarquee var(--partner-duration, 120s) linear infinite;
 }
 
 .partnerGroup {
@@ -195,13 +195,21 @@
 .partnerLogo {
   flex: 0 0 230px;
   width: 230px;
+  height: 150px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
 }
 
 .partnerLogo img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  padding: 18px;
+  object-fit: contain;
 }
+
+.partnerLogo[data-builtin="true"] img { padding: 0; }
 
 .partners[data-running="false"] .partnerTrack,
 .partners:hover .partnerTrack,
@@ -362,16 +370,16 @@
   .partnerLogo {
     flex-basis: 165px;
     width: 165px;
+    height: 105px;
+    border-radius: 15px;
   }
 
-  .partnerLogo:nth-child(even) {
-    flex-basis: 163px;
-    width: 163px;
-  }
+  .partnerLogo img { padding: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .partners {
+    height: auto;
     overflow-x: auto;
     scrollbar-width: thin;
   }

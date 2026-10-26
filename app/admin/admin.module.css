@@ -118,7 +118,7 @@
 .editorEmpty { min-height: 260px; }
 .editorEmpty p { margin-top: 12px; color: var(--admin-muted); }
 .srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-.sectionNav { display: flex; gap: 4px; margin-bottom: 30px; padding-bottom: 10px; border-bottom: 1px solid #d9d2e5; }
+.sectionNav { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 30px; padding-bottom: 10px; border-bottom: 1px solid #d9d2e5; }
 .sectionNav button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; padding: 11px 20px; border: 0; border-radius: 6px; color: var(--admin-muted); background: transparent; font-weight: 500; }
 .sectionNav button:hover { color: var(--color-kit-purple); background: #eae5f2; }
 .sectionNav button[aria-pressed=true] { color: var(--color-kit-purple); background: #e5dcfa; }
@@ -133,6 +133,13 @@
 .registrationToolbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
 .registrationCount strong { font-size: 17px; font-weight: 700; }
 .registrationCount p { margin-top: 6px; color: var(--admin-muted); font-size: 13px; }
+.partnerListHeading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.partnerEditors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.partnerEditors .editorHeading h2 { min-width: 0; overflow-wrap: anywhere; }
+.partnerLogoPreview { position: relative; width: 100%; height: 150px; background: #fff; border: 1px solid #d9d2e5; border-radius: 12px; overflow: hidden; }
+.partnerLogoPreview img { object-fit: contain; padding: 14px; }
+.partnerLogoPreview > span { display: grid; place-items: center; height: 100%; color: var(--admin-muted); font-size: 14px; }
+.partnerRowActions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 20px; }
 .googleSheetsPanel { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-bottom: 24px; padding: 20px; border: 1px solid #d9d0e9; border-radius: 12px; background: #fff; }
 .googleSheetsPanel > div:first-child { flex: 1 1 300px; min-width: 0; }
 .googleSheetsPanel h2 { margin: 0 0 8px; font-size: 18px; }
@@ -177,9 +184,10 @@
   .shell input:not([type=checkbox]):not([type=file]), .shell textarea, .shell select { font-size: 16px; }
 }
 @media (max-width: 650px) {
+  .partnerEditors { grid-template-columns: 1fr; }
   .programPhotos { grid-template-columns: 1fr; gap: 20px; }
   .sectionNav { margin-bottom: 24px; }
-  .sectionNav button { flex: 1; padding-right: 10px; padding-left: 10px; }
+  .sectionNav button { flex: 1 1 calc(50% - 4px); padding-right: 10px; padding-left: 10px; }
   .registrations { padding: 20px 16px; }
   .registrationActions { gap: 8px; }
   .registrationActions button { flex: 1; padding-right: 12px; padding-left: 12px; }

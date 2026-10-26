@@ -1,0 +1,6 @@
+{
+  "partners": [
+    { "id": "demidov", "name": "Демидовский университет", "logo": "/assets/figma/partner-1.webp", "published": true },
+    { "id": "structura", "name": "Стартап-студия «Структура»", "logo": "/assets/figma/partner-2.webp", "published": true }
+  ]
+}

@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useRef } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import type { Partner } from "@/lib/partner-types";
 import { useMotionActivity } from "@/lib/use-motion-activity";
 import styles from "./about-partners.module.css";
 
@@ -86,37 +87,46 @@ export function AboutSection() {
   );
 }
 
-export function PartnersSection() {
+export function PartnersSection({ initialPartners }: { initialPartners: Partner[] }) {
+  const [partners, setPartners] = useState(initialPartners);
+  useEffect(() => {
+    const controller = new AbortController();
+    const refresh = async () => {
+      if (document.hidden) return;
+      try {
+        const response = await fetch("/api/partners", { cache: "no-store", signal: controller.signal });
+        if (!response.ok) return;
+        const result = await response.json();
+        if (Array.isArray(result.partners)) setPartners(result.partners);
+      } catch {
+        // Keep the last published logos when the connection is interrupted.
+      }
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      controller.abort();
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
+  if (!partners.length) return null;
+  return <div className="festival-partners"><PartnersMarquee partners={partners} /></div>;
+}
+
+function PartnersMarquee({ partners }: { partners: Partner[] }) {
   const regionRef = useRef<HTMLElement>(null);
   const { active } = useMotionActivity(regionRef);
+  const group = Array.from({ length: Math.max(1, Math.ceil(18 / partners.length)) }, () => partners).flat();
 
   return (
-    <section ref={regionRef} className={styles.partners} aria-label="Партнёры фестиваля" tabIndex={0} data-running={active}>
-      <div className={styles.partnerTrack}>
+    <section id="partners" ref={regionRef} className={styles.partners} aria-label="Партнёры фестиваля" tabIndex={0} data-running={active}>
+      <div className={styles.partnerTrack} style={{ "--partner-duration": `${group.length * 6.7}s` } as CSSProperties}>
         {[0, 1].map((copy) => (
-          <div
-            className={styles.partnerGroup}
-            key={copy}
-            role={copy === 0 ? "list" : undefined}
-            aria-hidden={copy === 1 ? true : undefined}
-          >
-            {Array.from({ length: 18 }, (_, index) => (
-              <div
-                className={`${styles.partnerLogo} ${index >= 6 ? styles.partnerFiller : ""}`}
-                key={index}
-                role={copy === 0 && index < 6 ? "listitem" : undefined}
-                aria-hidden={index >= 6 ? true : undefined}
-              >
-                <picture>
-                  <source media="(max-width: 767px)" srcSet={`/assets/mobile/about-partner-${index % 2 + 1}.webp`} width={index % 2 === 0 ? 165 : 163} height={105} />
-                  <Image
-                  src={`/assets/figma/partner-${index % 2 + 1}.webp`}
-                  width={230}
-                  height={150}
-                  alt={copy === 1 || index >= 6 ? "" : index % 2 === 0 ? "Демидовский университет" : "Стартап-студия «Структура»"}
-                  sizes="(max-width: 767px) 165px, 230px"
-                  />
-                </picture>
+          <div className={styles.partnerGroup} key={copy} role={copy === 0 ? "list" : undefined} aria-hidden={copy === 1 ? true : undefined}>
+            {group.map((partner, index) => (
+              <div className={`${styles.partnerLogo} ${index >= partners.length ? styles.partnerFiller : ""}`} key={`${partner.id}-${index}`} role={copy === 0 && index < partners.length ? "listitem" : undefined} aria-hidden={index >= partners.length ? true : undefined} data-builtin={partner.logo.startsWith("/assets/") ? "true" : undefined}>
+                <Image src={partner.logo} width={230} height={150} alt={copy === 0 && index < partners.length ? partner.name : ""} sizes="(max-width: 767px) 165px, 230px" unoptimized />
               </div>
             ))}
           </div>
