@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { SmoothScroll } from "@/components/smooth-scroll";
+import { site } from "@/lib/site-metadata";
 import "lenis/dist/lenis.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
@@ -25,6 +26,7 @@ const leoHand = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(site.url),
   title: "Предпринимай — фестиваль молодых предпринимателей",
   description: "20 ноября, Ярославль. Один день, чтобы услышать тех, кто уже вырос, и познакомиться с теми, кто растёт рядом.",
   robots: { index: false, follow: false },
