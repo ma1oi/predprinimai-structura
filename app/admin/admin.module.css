@@ -133,6 +133,14 @@
 .registrationToolbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
 .registrationCount strong { font-size: 17px; font-weight: 700; }
 .registrationCount p { margin-top: 6px; color: var(--admin-muted); font-size: 13px; }
+.googleSheetsPanel { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-bottom: 24px; padding: 20px; border: 1px solid #d9d0e9; border-radius: 12px; background: #fff; }
+.googleSheetsPanel > div:first-child { flex: 1 1 300px; min-width: 0; }
+.googleSheetsPanel h2 { margin: 0 0 8px; font-size: 18px; }
+.googleSheetsPanel p { margin: 0; color: var(--admin-muted); font-size: 14px; line-height: 1.5; }
+.googleSheetsPanel .googleSheetsError { margin-top: 8px; color: #a3223c; }
+.googleSheetsPanel .success { margin-top: 8px; }
+.googleSheetsActions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.googleSheetsActions a { color: #4200f6; font-size: 14px; text-underline-offset: 3px; }
 .registrationSearch { flex-basis: 370px; flex-shrink: 0; }
 .registrationSearch label { display: block; margin-bottom: 7px; color: var(--admin-muted); font-size: 13px; }
 .shell .registrationSearch input { font-size: 16px; }

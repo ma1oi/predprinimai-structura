@@ -8,20 +8,6 @@ import type { ProgramSpeaker } from "@/lib/program-speaker-types";
 import styles from "./schedule-speakers.module.css";
 
 const agenda = [
-  { time: "11:00-12:00", title: "Регистрация и знакомство" },
-  { time: "12:00-12:05", title: "Открытие фестиваля" },
-  { time: "12:05-12:50", title: "Спикер-сессия «Бизнес за зумерами: хайп или новая экономика?»", wide: true },
-  { time: "12:50-13:20", title: "«Личная эффективность: почему сильные руководители работают меньше»", twoLines: true },
-  { time: "13:20-13:50", title: "«Предприниматель: сколько стоит твой успех?»" },
-  { time: "13:50-14:20", title: "Перерыв на кофе-брейк и интерактивы на площадке" },
-  { time: "14:20-14:40", title: "Бизнес-батл «AI или здравый смысл?»" },
-  { time: "14:40-15:15", title: "Мастер-класс «Нанять AI: как рекрутировать себе цифрового сотрудника»", parallel: true },
-  { time: "15:15-15:35", title: "«Бизнес под\u00a0наблюдением: что\u00a0сегодня нельзя делать в\u00a0интернете»", twoLines: true },
-  { time: "15:35-16:15", title: "«Google уже мало: как нейросети выбирают бренды»", speaker: true },
-  { time: "16:15-16:30", title: "Закрытие фестиваля" },
-];
-
-const mobileAgenda = [
   {
     "time": "11:00-12:00",
     "title": "регистрация и знакомство",
@@ -94,7 +80,7 @@ function AgendaSpeaker({ panfilov = false, photo = "" }: { panfilov?: boolean; p
       <div className={styles.agendaSpeakerCopy}>
         <span>Спикер</span>
         <p className={styles.agendaSpeakerName}>{panfilov ? "Максим Панфилов" : "Максим Гончаренко"}</p>
-        <p>{panfilov ? "Практик в области ИИ и разработки AI-решений" : <>Предприниматель и бизнес-спикер,<br />эксперт по GEO-оптимизации</>}</p>
+        <p>{panfilov ? "Предприниматель, основатель panfilov.digital и panfilov.consulting" : "Предприниматель, маркетолог, аналитик. За 17 лет с нуля запустил 40+ проектов"}</p>
       </div>
     </div>
   );
@@ -126,28 +112,23 @@ export function ScheduleSection({ initialProgramSpeakers }: { initialProgramSpea
   return (
     <section id="schedule" className={styles.schedule} aria-labelledby="schedule-heading">
       <h2 id="schedule-heading" className={styles.heading}>Как пройдет день</h2>
-      <div className={styles.dateTime}><span>20 ноября</span><span>с 11:00 до 16:30</span></div>
+      <div className={styles.dateTime}><span>20 ноября</span><span>с 11:00 до {agenda[agenda.length - 1].time.split("-")[1]}</span></div>
       <ol className={styles.agenda}>
         {agenda.map((event) => (
-          <li key={event.time} className={`${styles.agendaRow} ${event.twoLines ? styles.twoLines : ""} ${event.parallel ? styles.parallelRow : ""} ${event.speaker ? styles.speakerRow : ""}`}>
+          <li key={event.time} className={`${styles.agendaRow} ${event.speaker ? styles.speakerRow : ""}`}>
             <div className={styles.timeColumn}>
               <span className={styles.time}>{event.time}</span>
-              {event.parallel && <span className={styles.parallelPill}>Параллельно</span>}
             </div>
             <div className={styles.eventContent}>
-              <h3 className={`${styles.eventTitle} ${event.wide ? styles.wideTitle : ""}`}>{event.title}</h3>
-              {event.parallel && <>
-                <p className={styles.eventDescription}>Создание агентов для задач</p>
-                <h3 className={`${styles.eventTitle} ${styles.parallelTitle}`}>«Не просто говорить, а внедрять: AI внутри бизнес-процессов»</h3>
-                <AgendaSpeaker panfilov photo={programSpeakers.find((speaker) => speaker.id === "panfilov")?.photo} />
-              </>}
-              {event.speaker && <AgendaSpeaker photo={programSpeakers.find((speaker) => speaker.id === "goncharenko")?.photo} />}
+              <h3 className={styles.eventTitle}>{event.title}</h3>
+              {event.description && <p className={styles.eventDescription}>{event.description}</p>}
+              {event.speaker && <AgendaSpeaker panfilov={event.speaker === "panfilov"} photo={programSpeakers.find((speaker) => speaker.id === event.speaker)?.photo} />}
             </div>
           </li>
         ))}
       </ol>
       <ol className={styles.mobileAgenda}>
-        {mobileAgenda.map((event, index) => (
+        {agenda.map((event, index) => (
           <li key={event.time} className={styles.mobileAgendaRow} data-row={index + 1} style={{ "--mobile-row-height": `${event.height}px` } as CSSProperties}>
             <span className={styles.mobileTime}>{event.time}</span>
             <h3 className={styles.mobileEventTitle}>{event.title}</h3>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Registration } from "@/lib/registration-types";
+import type { GoogleSheetsSyncStatus } from "@/lib/google-sheets-types";
 import styles from "./admin.module.css";
 
 const PAGE_SIZE = 50;
@@ -41,19 +42,24 @@ export function RegistrationsAdmin({ onSessionExpired }: { onSessionExpired: () 
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
   const [exportMessage, setExportMessage] = useState("");
+  const [googleSheets, setGoogleSheets] = useState<GoogleSheetsSyncStatus | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const listController = useRef<AbortController | null>(null);
   const exportController = useRef<AbortController | null>(null);
+  const syncController = useRef<AbortController | null>(null);
 
   const load = useCallback((signal: AbortSignal) => {
     return fetch("/api/admin/registrations", { cache: "no-store", signal }).then(async (response) => {
       if (response.status === 401) { onSessionExpired(); return; }
       if (!response.ok) throw new Error(await responseError(response, "Не удалось загрузить заявки. Повторите загрузку."));
-      const body: { registrations: Registration[] } = await response.json();
+      const body: { registrations: Registration[]; googleSheets?: GoogleSheetsSyncStatus } = await response.json();
       if (!Array.isArray(body.registrations)) throw new Error("Не удалось прочитать список заявок. Повторите загрузку.");
       if (!signal.aborted) {
         setRegistrations(body.registrations);
+        setGoogleSheets(body.googleSheets ?? null);
         setLoaded(true);
       }
     }).catch((reason: unknown) => {
@@ -67,7 +73,7 @@ export function RegistrationsAdmin({ onSessionExpired }: { onSessionExpired: () 
     const controller = new AbortController();
     listController.current = controller;
     void load(controller.signal);
-    return () => { listController.current?.abort(); exportController.current?.abort(); };
+    return () => { listController.current?.abort(); exportController.current?.abort(); syncController.current?.abort(); };
   }, [load]);
 
   function reload() {
@@ -77,6 +83,31 @@ export function RegistrationsAdmin({ onSessionExpired }: { onSessionExpired: () 
     setLoading(true);
     setError("");
     void load(controller.signal);
+  }
+
+  async function syncRegistrations() {
+    if (syncing) return;
+    const controller = new AbortController();
+    syncController.current = controller;
+    setSyncing(true);
+    setSyncMessage("");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/registrations/sync", { method: "POST", signal: controller.signal });
+      if (response.status === 401) { onSessionExpired(); return; }
+      const body = await response.json().catch(() => null);
+      if (controller.signal.aborted) return;
+      if (body?.googleSheets) setGoogleSheets(body.googleSheets);
+      if (!response.ok) {
+        if (!body?.googleSheets) setError(body?.error || "Не удалось отправить заявки в Google Таблицу. Попробуйте ещё раз.");
+        return;
+      }
+      setSyncMessage(`Синхронизация завершена. Заявок сайта синхронизировано: ${body.googleSheets.total}.`);
+    } catch {
+      if (!controller.signal.aborted) setError("Не удалось связаться с сервером. Заявки сохранены; повторите синхронизацию.");
+    } finally {
+      if (!controller.signal.aborted) setSyncing(false);
+    }
   }
 
   async function exportRegistrations() {
@@ -131,6 +162,13 @@ export function RegistrationsAdmin({ onSessionExpired }: { onSessionExpired: () 
     </div>
     {error && <div className={styles.error} role="alert"><p>{error}</p></div>}
     {exportMessage && <p className={styles.success} role="status">{exportMessage}</p>}
+    {googleSheets && <section className={styles.googleSheetsPanel} aria-label="Синхронизация с Google Таблицей" aria-busy={syncing}>
+      <div><h2>Google Таблица</h2><p>{!googleSheets.configured ? "Подключение ещё не настроено. Заявки сохраняются в админке и доступны в Excel." : googleSheets.syncing || syncing ? "Синхронизируем заявки…" : googleSheets.lastSyncedAt ? `Последняя синхронизация: ${formatDate(googleSheets.lastSyncedAt)}. Заявок: ${googleSheets.total}.` : "Новые заявки будут отправляться автоматически. Для отправки уже сохранённых заявок нажмите «Синхронизировать»."}</p>
+        {googleSheets.error && <p className={styles.googleSheetsError} role="alert">{googleSheets.error}</p>}
+        {syncMessage && <p className={styles.success} role="status">{syncMessage}</p>}
+      </div>
+      <div className={styles.googleSheetsActions}>{googleSheets.url && <a href={googleSheets.url} target="_blank" rel="noopener noreferrer">Открыть таблицу</a>}<button className={styles.secondary} type="button" disabled={!googleSheets.configured || syncing} onClick={() => void syncRegistrations()}>{syncing ? "Синхронизируем…" : "Синхронизировать"}</button></div>
+    </section>}
     {!loaded ? <section className={styles.loading} aria-busy={loading}><h2>{loading ? "Загружаем заявки…" : "Список заявок не загружен"}</h2>{!loading && <button className={styles.secondary} type="button" onClick={reload}>Повторить загрузку</button>}</section> : <div className={styles.registrations} aria-busy={loading}>
       <div className={styles.registrationToolbar}>
         <div className={styles.registrationCount} role="status"><strong>Всего заявок: {registrations.length}</strong><p>Excel содержит все заявки, включая скрытые поиском.</p></div>
