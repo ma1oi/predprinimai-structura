@@ -1,7 +1,8 @@
 @import "tailwindcss";
 @import "./tokens.css";
 
-html { color-scheme: light; }
+html { color-scheme: light; scrollbar-width: none; }
+html::-webkit-scrollbar { width: 0; }
 body {
   margin: 0;
   background: #111;
