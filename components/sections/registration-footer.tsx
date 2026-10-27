@@ -126,7 +126,7 @@ export function RegistrationSection({ initialPredictions }: { initialPredictions
             </label>
             <label className={styles.consent}>
               <input type="checkbox" name="consent" required />
-              <span>Я даю согласие на обработку персональных данных в соответствии с политикой конфиденциальности</span>
+              <span>Я даю <a href="/documents/personal-data-consent.pdf" target="_blank" rel="noopener noreferrer">согласие на обработку персональных данных</a> в соответствии с <a href="/documents/personal-data-policy.pdf" target="_blank" rel="noopener noreferrer">политикой конфиденциальности</a></span>
             </label>
             <Button variant="pink" icon="arrow" type="submit" className={styles.submit}>{formState === "submitting" ? "отправляем…" : "зарегистрироваться"}</Button>
             <p className={styles.formMessage} data-status={formState} role={formState === "error" ? "alert" : "status"}>{formMessage}</p>
@@ -187,7 +187,8 @@ export function FestivalFooter() {
       <p className={styles.footerSubtitle}>Фестиваль молодых предпринимателей</p>
       <a href="#home" className={styles.wordmark}>предпринимай</a>
       <div className={styles.footerBottom}>
-        <button type="button" disabled title="Документ появится позже" className={styles.privacy}>Политика конфиденциальности</button>
+        <a href="/documents/personal-data-policy.pdf" target="_blank" rel="noopener noreferrer" className={styles.privacy}>Политика обработки персональных данных</a>
+        <a href="/documents/personal-data-consent.pdf" target="_blank" rel="noopener noreferrer" className={styles.privacy}>Согласие на обработку персональных данных</a>
       </div>
     </footer>
   );

@@ -11,3 +11,6 @@ out/
 
 # Local admin screenshots may contain registration details
 design/**/*admin*.png
+
+# Local Yandex OAuth token; never commit credentials.
+yandex-disk-token.txt

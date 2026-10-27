@@ -19,6 +19,8 @@
 .field + .field { padding-bottom: calc(14 * var(--registration-unit)); }
 .field .company { font-family: var(--font-golos); }
 .consent { display: flex; gap: calc(12 * var(--registration-unit)); align-items: center; width: calc(369 * var(--registration-unit)); max-width: 100%; font: 400 calc(14 * var(--registration-unit))/calc(16 * var(--registration-unit)) var(--font-body); letter-spacing: -.03em; color: #888; }
+.consent a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.consent a:hover { color: var(--color-kit-purple); }
 .consent input { flex-shrink: 0; width: 14px; height: 14px; margin: 0; accent-color: var(--color-kit-purple); cursor: pointer; }
 .submit { width: calc(315 * var(--registration-unit)); max-width: 100%; height: calc(65 * var(--registration-unit)); justify-content: flex-start; padding-inline: calc(20 * var(--registration-unit)); font-size: calc(20 * var(--registration-unit)); letter-spacing: -.03em; white-space: nowrap; }
 .submit img { width: calc(35 * var(--registration-unit)); height: calc(35 * var(--registration-unit)); margin-left: 0; }
@@ -47,8 +49,8 @@
 .socials img { width: calc(50 * var(--footer-unit)); height: calc(50 * var(--footer-unit)); }
 .footerSubtitle { margin: calc(14 * var(--footer-unit)) 0 calc(21 * var(--footer-unit)); font-size: calc(25 * var(--footer-unit)); line-height: 1; text-transform: uppercase; }
 .wordmark { display: block; width: fit-content; max-width: 100%; color: inherit; text-decoration: none; font-size: calc(143 * var(--footer-unit)); line-height: 1; text-transform: uppercase; }
-.footerBottom { display: flex; border-top: 1px solid var(--color-kit-lavender); margin-top: calc(30 * var(--footer-unit)); padding-top: calc(29 * var(--footer-unit)); }
-.privacy { border: 0; background: transparent; padding: 0; color: var(--color-kit-paper); font: 400 calc(14 * var(--footer-unit))/calc(16 * var(--footer-unit)) var(--font-body); letter-spacing: -.03em; cursor: default; }
+.footerBottom { display: flex; flex-wrap: wrap; gap: 20px 32px; border-top: 1px solid var(--color-kit-lavender); margin-top: calc(30 * var(--footer-unit)); padding-top: calc(29 * var(--footer-unit)); }
+.privacy { border: 0; background: transparent; padding: 0; color: var(--color-kit-paper); font: 400 calc(14 * var(--footer-unit))/calc(16 * var(--footer-unit)) var(--font-body); letter-spacing: -.03em; text-underline-offset: 3px; overflow-wrap: anywhere; }
 @media (max-width: 1100px) {
   .registration { --registration-unit: 1px; padding: 40px 20px 48px; border-radius: 32px 32px 0 0; }
   .heading { font-size: 30px; }
