@@ -88,6 +88,7 @@
 }
 
 .eventDescription {
+  white-space: pre-line;
   margin: 20px 0 0;
   color: #555;
   font-family: var(--font-body), Arial, sans-serif;
@@ -213,13 +214,12 @@
   .dateTime span { padding: 10px 15px; }
   .agenda { display: none; }
   .mobileAgenda { display: flex; flex-direction: column; gap: 30px; list-style: none; margin: 40px 0 0; padding: 0; }
-  .mobileAgendaRow { min-height: var(--mobile-row-height); padding-top: 19px; border-top: 1px solid #9c7af9; }
-  .mobileAgendaRow[data-row="7"] { padding-top: 14px; }
+  .mobileAgendaRow { min-height: 67px; padding-top: 19px; border-top: 1px solid #9c7af9; }
+
   .mobileTime { display: block; font: 400 14px/14px var(--font-body), Arial, sans-serif; }
   .mobileEventTitle { margin: 15px 0 0; font-size: 16px; font-weight: 800; line-height: 18px; text-transform: uppercase; }
-  .mobileEventDescription { margin: 10px 0 0; color: #555; font: 400 12px/13px var(--font-body), Arial, sans-serif; }
-  .mobileAgendaRow[data-row="9"] .mobileEventTitle,
-  .mobileAgendaRow[data-row="11"] .mobileEventTitle { max-width: 345px; text-indent: 5px; }
+  .mobileEventDescription { margin: 10px 0 0; color: #555; font: 400 12px/13px var(--font-body), Arial, sans-serif; white-space: pre-line; }
+
   .mobileAgendaSpeaker { display: flex; align-items: center; gap: 30px; max-width: 345px; margin-top: 20px; color: #555; font: 400 14px/16px var(--font-body), Arial, sans-serif; }
   .mobileAgendaPhoto { width: 80px; height: 80px; flex-shrink: 0; border-radius: 8px; object-fit: cover; }
   .mobileSpeakerCopy { min-width: 0; overflow-wrap: anywhere; }
@@ -248,3 +248,5 @@
 @media (prefers-reduced-motion: reduce) {
   .speakerTrack.moving { transition: none; }
 }
+
+.agendaEmpty { margin: 40px 0 0; text-align: center; font-family: var(--font-body), Arial, sans-serif; }

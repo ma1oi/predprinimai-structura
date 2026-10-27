@@ -116,9 +116,9 @@ export async function readRequestBody(request: Request, limit: number) {
   return buffer;
 }
 
-export async function readJsonBody(request: Request) {
+export async function readJsonBody(request: Request, limit = 256 * 1024) {
   if (request.headers.get("content-type")?.split(";")[0].trim().toLowerCase() !== "application/json") throw new AdminRequestError("Ожидается JSON.", 415);
-  const buffer = await readRequestBody(request, 256 * 1024);
+  const buffer = await readRequestBody(request, limit);
   try {
     return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(buffer));
   } catch {

@@ -12,11 +12,11 @@ import styles from "./admin.module.css";
 
 type Session = "checking" | "guest" | "authenticated";
 type Confirmation = "reload" | "logout" | null;
-type AdminSection = "speakers" | "registrations" | "program" | "partners" | "predictions";
+type AdminSection = "registrations" | "program" | "partners" | "predictions";
 
 function currentSection(): AdminSection {
   const tab = new URLSearchParams(window.location.search).get("tab");
-  return tab === "registrations" || tab === "program" || tab === "partners" || tab === "predictions" ? tab : "speakers";
+  return tab === "registrations" || tab === "program" || tab === "partners" || tab === "predictions" ? tab : "program";
 }
 
 class ApiError extends Error {
@@ -36,7 +36,7 @@ function Arrow({ down = false }: { down?: boolean }) {
 
 export function SpeakersAdmin() {
   const [session, setSession] = useState<Session>("checking");
-  const [section, setSection] = useState<AdminSection>("speakers");
+  const [section, setSection] = useState<AdminSection>("program");
   const [programState, setProgramState] = useState({ dirty: false, busy: false });
   const [programKey, setProgramKey] = useState(0);
   const [partnersState, setPartnersState] = useState({ dirty: false, busy: false });
@@ -120,8 +120,7 @@ export function SpeakersAdmin() {
   function changeSection(next: AdminSection) {
     setSection(next);
     const url = new URL(window.location.href);
-    if (next !== "speakers") url.searchParams.set("tab", next);
-    else url.searchParams.delete("tab");
+    url.searchParams.set("tab", next);
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   }
 
@@ -220,20 +219,20 @@ export function SpeakersAdmin() {
   return <div className={styles.shell}>
     <header className={styles.header}><a className={styles.brand} href="/" target="_blank" rel="noopener noreferrer">предпринимай</a><span className={styles.headerLabel}>Управление сайтом</span>{session === "authenticated" && <button className={styles.logout} disabled={locked} onClick={() => dirty || programState.dirty || partnersState.dirty || predictionsState.dirty ? setConfirmation("logout") : void logout()}>Выйти</button>}</header>
     {session === "checking" ? <main className={styles.login}><h1>Вход в управление</h1><p role="status">Проверяем вход…</p></main> : session === "guest" ? <main className={styles.login}>
-      <h1>Управление сайтом</h1><p className={styles.muted}>Войдите, чтобы редактировать спикеров, партнёров, предсказания и спикеров в программе, просматривать заявки и скачивать их в Excel.</p>
+      <h1>Управление сайтом</h1><p className={styles.muted}>Войдите, чтобы редактировать программу, спикеров, партнёров и предсказания, просматривать заявки и скачивать их в Excel.</p>
       {notices}
       {!configured ? <p className={styles.error} role="alert">Вход ещё не настроен. Добавьте пароль администратора в настройки сервера.</p> : <form onSubmit={login} className={styles.loginForm}><label htmlFor="admin-password">Пароль администратора</label><input id="admin-password" name="password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} disabled={busy} autoFocus /><button className={styles.primary} type="submit" disabled={busy || !password}>{busy ? "Входим…" : "Войти"}</button></form>}
       <a className={styles.textLink} href="/" target="_blank" rel="noopener noreferrer">Открыть сайт</a>
     </main> : null}
     <main className={styles.main} hidden={session !== "authenticated"}>
-      <nav className={styles.sectionNav} aria-label="Разделы управления"><button type="button" aria-pressed={section === "speakers"} aria-controls="speakers-section" onClick={() => changeSection("speakers")}>Спикеры{dirty && <><span className={styles.unsavedDot} aria-hidden="true" /><span className={styles.srOnly}> — есть несохранённые изменения</span></>}</button><button type="button" aria-pressed={section === "registrations"} aria-controls="registrations-section" onClick={() => changeSection("registrations")}>Заявки</button><button type="button" aria-pressed={section === "program"} aria-controls="program-section" onClick={() => changeSection("program")}>Программа{programState.dirty && <><span className={styles.unsavedDot} aria-hidden="true" /><span className={styles.srOnly}> — есть несохранённые изменения</span></>}</button><button type="button" aria-pressed={section === "partners"} aria-controls="partners-section" onClick={() => changeSection("partners")}>Партнёры{partnersState.dirty && <><span className={styles.unsavedDot} aria-hidden="true" /><span className={styles.srOnly}> — есть несохранённые изменения</span></>}</button><button type="button" aria-pressed={section === "predictions"} aria-controls="predictions-section" onClick={() => changeSection("predictions")}>Предсказания{predictionsState.dirty && <><span className={styles.unsavedDot} aria-hidden="true" /><span className={styles.srOnly}> — есть несохранённые изменения</span></>}</button></nav>
+      <nav className={styles.sectionNav} aria-label="Разделы управления"><button type="button" aria-pressed={section === "registrations"} aria-controls="registrations-section" onClick={() => changeSection("registrations")}>Заявки</button><button type="button" aria-pressed={section === "program"} aria-controls="program-section" onClick={() => changeSection("program")}>Программа и спикеры{(programState.dirty || dirty) && <><span className={styles.unsavedDot} aria-hidden="true" /><span className={styles.srOnly}> — есть несохранённые изменения</span></>}</button><button type="button" aria-pressed={section === "partners"} aria-controls="partners-section" onClick={() => changeSection("partners")}>Партнёры{partnersState.dirty && <><span className={styles.unsavedDot} aria-hidden="true" /><span className={styles.srOnly}> — есть несохранённые изменения</span></>}</button><button type="button" aria-pressed={section === "predictions"} aria-controls="predictions-section" onClick={() => changeSection("predictions")}>Предсказания{predictionsState.dirty && <><span className={styles.unsavedDot} aria-hidden="true" /><span className={styles.srOnly}> — есть несохранённые изменения</span></>}</button></nav>
       {notices}
       <section id="registrations-section" aria-label="Заявки" hidden={section !== "registrations"}>{session === "authenticated" && section === "registrations" && <RegistrationsAdmin onSessionExpired={expireSession} />}</section>
       <section id="program-section" aria-label="Программа" hidden={section !== "program"}><ProgramSpeakersAdmin key={programKey} active={session === "authenticated" && section === "program"} onSessionExpired={expireSession} onStateChange={setProgramState} /></section>
       <section id="partners-section" aria-label="Партнёры" hidden={section !== "partners"}><PartnersAdmin key={partnersKey} active={session === "authenticated" && section === "partners"} onSessionExpired={expireSession} onStateChange={setPartnersState} /></section>
       <section id="predictions-section" aria-label="Предсказания" hidden={section !== "predictions"}><PredictionsAdmin key={predictionsKey} active={session === "authenticated" && section === "predictions"} onSessionExpired={expireSession} onStateChange={setPredictionsState} /></section>
-      <section id="speakers-section" aria-label="Спикеры" hidden={section !== "speakers"}>
-      <div className={styles.pageHeading}><div><h1>Спикеры</h1><p className={styles.muted}>Карточки, порядок и видимость на сайте фестиваля.</p></div><a className={styles.previewLink} href="/#speakers" target="_blank" rel="noopener noreferrer">Посмотреть на сайте <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6 4h10v10M16 4 4 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></a></div>
+      <section id="speakers-section" className={styles.carouselAdmin} aria-label="Спикеры" hidden={section !== "program"}>
+      <div className={styles.pageHeading}><div><h2>Спикеры в карусели</h2><p className={styles.muted}>Карточки блока «Кто будет на сцене»: порядок и видимость на сайте. Редактируются отдельно от спикеров пунктов программы.</p></div><a className={styles.previewLink} href="/#speakers" target="_blank" rel="noopener noreferrer">Посмотреть на сайте <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6 4h10v10M16 4 4 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></a></div>
       {!loaded ? <section className={styles.loading} aria-busy={busy}><h2>{busy ? "Загружаем спикеров…" : "Не удалось загрузить список"}</h2>{!busy && <button className={styles.secondary} onClick={() => void reload()}>Повторить загрузку</button>}</section> : <>
         <div className={styles.workspace}>
           <section className={styles.listPanel} aria-labelledby="speaker-list-heading"><div className={styles.listHeading}><h2 id="speaker-list-heading">На сайте <span>{speakers.filter((speaker) => speaker.published).length} из {speakers.length}</span></h2><button className={styles.addButton} onClick={addSpeaker} disabled={locked || speakers.length >= 100}>Добавить спикера</button></div><p className={styles.listHint}>Порядок в списке — порядок карточек на сайте.</p>

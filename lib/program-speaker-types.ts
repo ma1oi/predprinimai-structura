@@ -1,7 +1,10 @@
-export type ProgramSpeakerId = "registration" | "opening" | "business-session" | "effectiveness" | "success" | "coffee-break" | "ai-battle" | "ai-workshop" | "panfilov" | "internet-law" | "goncharenko" | "closing";
+export type ProgramSpeakerId = string;
 
 export interface ProgramSpeaker {
   id: ProgramSpeakerId;
+  title: string;
+  time: string;
+  description: string;
   name: string;
   job: string;
   photo: string;

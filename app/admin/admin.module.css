@@ -124,6 +124,9 @@
 .sectionNav button[aria-pressed=true] { color: var(--color-kit-purple); background: #e5dcfa; }
 .programPhotos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
 .programPhotoField { margin-bottom: 0; }
+.programTimes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.programSpeakerHeading { margin-bottom: 18px !important; }
+.carouselAdmin { margin-top: 48px; }
 .unsavedDot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .registrationHeading { align-items: flex-start; }
 .registrationHeading > div:first-child { min-width: 0; }

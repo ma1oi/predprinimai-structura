@@ -6,7 +6,7 @@ import { speakerPhotoPattern } from "./speaker-store";
 import type { ProgramSpeaker, ProgramSpeakerDocument } from "./program-speaker-types";
 
 function defaults(): ProgramSpeaker[] {
-  return programAgenda.map(({ id }) => ({ id, name: "Имя", job: "Должность", photo: "", ...(
+  return programAgenda.map(({ id, title, time, description = "" }) => ({ id, title, time: time.replace(/[–—-]/g, "–"), description, name: "Имя", job: "Должность", photo: "", ...(
     id === "panfilov" ? { name: "Максим Панфилов", job: "Предприниматель, основатель panfilov.digital и panfilov.consulting" }
     : id === "goncharenko" ? { name: "Максим Гончаренко", job: "Предприниматель, маркетолог, аналитик. За 17 лет с нуля запустил 40+ проектов" } : {}
   ) }));
@@ -22,31 +22,40 @@ export function validateProgramSpeakerDocument(value: unknown): ProgramSpeakerDo
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new ProgramSpeakerStoreError("Некорректные данные спикеров программы.");
   const input = value as Record<string, unknown>;
   if (typeof input.revision !== "string" || !input.revision || input.revision.length > 128) throw new ProgramSpeakerStoreError("Обновите программу и повторите сохранение.");
-  if (!Array.isArray(input.speakers) || input.speakers.length !== programAgenda.length) throw new ProgramSpeakerStoreError("Укажите данные для каждого пункта программы.");
+  if (!Array.isArray(input.speakers) || input.speakers.length > 100) throw new ProgramSpeakerStoreError("В программе может быть не более 100 пунктов.");
   const speakers = new Map<string, ProgramSpeaker>();
   for (const value of input.speakers) {
     if (!value || typeof value !== "object" || Array.isArray(value)) throw new ProgramSpeakerStoreError("Некорректные данные спикера.");
     const item = value as Record<string, unknown>;
-    const event = programAgenda.find((event) => event.id === item.id);
-    if (!event || speakers.has(event.id)) throw new ProgramSpeakerStoreError("Пункты программы должны быть уникальными.");
+    if (typeof item.id !== "string" || !/^[a-zA-Z0-9_-]{1,80}$/.test(item.id) || speakers.has(item.id)) throw new ProgramSpeakerStoreError("Пункты программы должны иметь уникальные идентификаторы.");
+    const title = text(item.title, "Название пункта", 300, true);
+    if (!title) throw new ProgramSpeakerStoreError("Укажите название каждого пункта программы.");
+    const time = text(item.time, "Время", 30).replace(/\s/g, "").replace(/[—-]/g, "–");
+    const match = time.match(/^([01]\d|2[0-3]):([0-5]\d)–([01]\d|2[0-3]):([0-5]\d)$/);
+    if (!match || Number(match[1]) * 60 + Number(match[2]) >= Number(match[3]) * 60 + Number(match[4])) throw new ProgramSpeakerStoreError("Укажите время начала и окончания: например, 12:00–13:00. Окончание должно быть позже начала.");
+    const description = text(item.description, "Описание пункта", 2000, true);
     const name = text(item.name, "Имя спикера", 120);
-    const job = text(item.job, "Описание спикера", 300);
+    const job = text(item.job, "Описание спикера", 300, true);
     if (typeof item.photo !== "string" || (item.photo !== "" && !speakerPhotoPattern.test(item.photo))) throw new ProgramSpeakerStoreError("Загрузите фото через форму.");
     if (!name && (job || item.photo)) throw new ProgramSpeakerStoreError("Укажите имя спикера или очистите его описание и фото.");
-    speakers.set(event.id, { id: event.id, name, job, photo: item.photo });
+    speakers.set(item.id, { id: item.id, title, time, description, name, job, photo: item.photo });
   }
-  return { speakers: programAgenda.map((event) => speakers.get(event.id)!), revision: input.revision };
+  return { speakers: [...speakers.values()], revision: input.revision };
 }
 
-function text(value: unknown, label: string, max: number): string {
-  if (typeof value !== "string" || value.trim().length > max || /[\u0000-\u001f\u007f]/.test(value)) throw new ProgramSpeakerStoreError(`${label}: укажите текст до ${max} символов.`);
+function text(value: unknown, label: string, max: number, multiline = false): string {
+  if (typeof value !== "string" || value.trim().length > max || (multiline ? /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/ : /[\u0000-\u001f\u007f]/).test(value)) throw new ProgramSpeakerStoreError(`${label}: укажите текст до ${max} символов.`);
   return value.trim();
 }
 
 function migrateLegacy(value: unknown): unknown {
   if (!value || typeof value !== "object" || Array.isArray(value)) return value;
   const old = (value as Record<string, unknown>).speakers;
-  if (!Array.isArray(old) || old.length !== 2) return value;
+  if (!Array.isArray(old)) return value;
+  if (old.length === programAgenda.length && old.every((item) => item && typeof item === "object" && !Object.hasOwn(item, "title") && !Object.hasOwn(item, "time") && !Object.hasOwn(item, "description")) && new Set(old.map((item) => item.id)).size === programAgenda.length && old.every((item) => programAgenda.some((event) => event.id === item.id))) {
+    return { speakers: defaults().map((event) => ({ ...event, ...old.find((item) => item.id === event.id) })) };
+  }
+  if (old.length !== 2) return value;
   const legacy = old as Record<string, unknown>[];
   if (!legacy.every((item) => item && typeof item === "object" && !Object.hasOwn(item, "job") && (item.id === "panfilov" || item.id === "goncharenko")) || new Set(legacy.map((item) => item.id)).size !== 2) return value;
   return { speakers: defaults().map((speaker) => {
