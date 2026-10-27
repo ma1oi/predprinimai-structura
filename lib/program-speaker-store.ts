@@ -3,9 +3,9 @@ import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { programAgenda } from "./program-agenda";
 import { speakerPhotoPattern } from "./speaker-store";
-import type { ProgramSpeaker, ProgramSpeakerDocument } from "./program-speaker-types";
+import type { ProgramSpeaker, ProgramSpeakerDocument, ProgramPresenter } from "./program-speaker-types";
 
-function defaults(): ProgramSpeaker[] {
+function defaults() {
   return programAgenda.map(({ id, title, time, description = "" }) => ({ id, title, time: time.replace(/[–—-]/g, "–"), description, name: "Имя", job: "Должность", photo: "", ...(
     id === "panfilov" ? { name: "Максим Панфилов", job: "Предприниматель, основатель panfilov.digital и panfilov.consulting" }
     : id === "goncharenko" ? { name: "Максим Гончаренко", job: "Предприниматель, маркетолог, аналитик. За 17 лет с нуля запустил 40+ проектов" } : {}
@@ -34,11 +34,20 @@ export function validateProgramSpeakerDocument(value: unknown): ProgramSpeakerDo
     const match = time.match(/^([01]\d|2[0-3]):([0-5]\d)–([01]\d|2[0-3]):([0-5]\d)$/);
     if (!match || Number(match[1]) * 60 + Number(match[2]) >= Number(match[3]) * 60 + Number(match[4])) throw new ProgramSpeakerStoreError("Укажите время начала и окончания: например, 12:00–13:00. Окончание должно быть позже начала.");
     const description = text(item.description, "Описание пункта", 2000, true);
-    const name = text(item.name, "Имя спикера", 120);
-    const job = text(item.job, "Описание спикера", 300, true);
-    if (typeof item.photo !== "string" || (item.photo !== "" && !speakerPhotoPattern.test(item.photo))) throw new ProgramSpeakerStoreError("Загрузите фото через форму.");
-    if (!name && (job || item.photo)) throw new ProgramSpeakerStoreError("Укажите имя спикера или очистите его описание и фото.");
-    speakers.set(item.id, { id: item.id, title, time, description, name, job, photo: item.photo });
+    if (!Array.isArray(item.presenters) || item.presenters.length > 20) throw new ProgramSpeakerStoreError("У одного пункта может быть не более 20 спикеров.");
+    const presenterIds = new Set<string>();
+    const presenters = item.presenters.map((value: unknown): ProgramPresenter => {
+      if (!value || typeof value !== "object" || Array.isArray(value)) throw new ProgramSpeakerStoreError("Некорректные данные спикера пункта.");
+      const person = value as Record<string, unknown>;
+      if (typeof person.id !== "string" || !/^[a-zA-Z0-9_-]{1,80}$/.test(person.id) || presenterIds.has(person.id)) throw new ProgramSpeakerStoreError("Спикеры одного пункта должны иметь уникальные идентификаторы.");
+      presenterIds.add(person.id);
+      const name = text(person.name, "Имя спикера", 120);
+      const job = text(person.job, "Описание спикера", 300, true);
+      if (typeof person.photo !== "string" || (person.photo !== "" && !speakerPhotoPattern.test(person.photo))) throw new ProgramSpeakerStoreError("Загрузите фото через форму.");
+      if (!name && (job || person.photo)) throw new ProgramSpeakerStoreError("Укажите имя спикера или очистите его описание и фото.");
+      return { id: person.id, name, job, photo: person.photo };
+    });
+    speakers.set(item.id, { id: item.id, title, time, description, presenters });
   }
   return { speakers: [...speakers.values()], revision: input.revision };
 }
@@ -68,6 +77,17 @@ function documentFor(speakers: ProgramSpeaker[]): ProgramSpeakerDocument {
   return { speakers, revision: createHash("sha256").update(JSON.stringify(speakers)).digest("hex") };
 }
 
+function migratePresenters(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const items = (value as Record<string, unknown>).speakers;
+  if (!Array.isArray(items)) return value;
+  return { speakers: items.map((event) => {
+    if (!event || typeof event !== "object" || Array.isArray(event) || Object.hasOwn(event, "presenters") || !["name", "job", "photo"].every((key) => Object.hasOwn(event, key))) return event;
+    const { name, job, photo, ...agenda } = event;
+    return { ...agenda, presenters: name === "" && job === "" && photo === "" ? [] : [{ id: "legacy", name, job, photo }] };
+  }) };
+}
+
 /** Per-event speakers live independently from carousel cards and registrations. */
 export class ProgramSpeakerStore {
   readonly directory: string;
@@ -86,7 +106,7 @@ export class ProgramSpeakerStore {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
       content = { speakers: defaults() };
     }
-    const speakers = validateProgramSpeakerDocument({ ...(migrateLegacy(content) as object), revision: "stored" }).speakers;
+    const speakers = validateProgramSpeakerDocument({ ...(migratePresenters(migrateLegacy(content)) as object), revision: "stored" }).speakers;
     return documentFor(speakers);
   }
 

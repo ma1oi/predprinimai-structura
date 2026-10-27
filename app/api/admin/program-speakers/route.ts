@@ -15,6 +15,6 @@ export async function PUT(request: Request) {
   try {
     enforceSameOrigin(request);
     requireAdmin(request);
-    return adminJson(await saveProgramSpeakerDocument(await readJsonBody(request, 1024 * 1024)));
+    return adminJson(await saveProgramSpeakerDocument(await readJsonBody(request, 4 * 1024 * 1024)));
   } catch (error) { return requestErrorResponse(error); }
 }

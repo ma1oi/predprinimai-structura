@@ -125,7 +125,8 @@
 .programPhotos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
 .programPhotoField { margin-bottom: 0; }
 .programTimes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.programSpeakerHeading { margin-bottom: 18px !important; }
+.programPresenter { min-width: 0; margin: 22px 0 0; padding: 18px 0 0; border: 0; border-top: 1px solid #d9d2e5; }
+.programPresenter legend { padding: 0 10px 0 0; font-weight: 500; }
 .carouselAdmin { margin-top: 48px; }
 .unsavedDot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .registrationHeading { align-items: flex-start; }

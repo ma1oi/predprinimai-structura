@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { ArrowButton } from "../ui";
 import type { Speaker } from "@/lib/speaker-types";
-import type { ProgramSpeaker } from "@/lib/program-speaker-types";
+import type { ProgramSpeaker, ProgramPresenter } from "@/lib/program-speaker-types";
 import styles from "./schedule-speakers.module.css";
 
 
@@ -14,7 +14,7 @@ function speakerText(value: string) {
   return /^(?:имя(?:\s+фамилия|\s+спикера скоро объявим)?|должность)$/iu.test(text) ? "" : text;
 }
 
-function AgendaSpeaker({ speaker, mobile = false }: { speaker: ProgramSpeaker; mobile?: boolean }) {
+function AgendaSpeaker({ speaker, mobile = false }: { speaker: ProgramPresenter; mobile?: boolean }) {
   const name = speakerText(speaker.name);
   const job = speakerText(speaker.job);
   if (!name && !job && !speaker.photo) return null;
@@ -63,29 +63,27 @@ export function ScheduleSection({ initialProgramSpeakers }: { initialProgramSpea
       {programSpeakers.length === 0 && <p className={styles.agendaEmpty}>Программа скоро появится</p>}
       <ol className={styles.agenda}>
         {programSpeakers.map((event) => {
-          const speaker = event;
           return (
-          <li key={event.id} className={`${styles.agendaRow} ${speaker && (speakerText(speaker.name) || speakerText(speaker.job) || speaker.photo) ? styles.speakerRow : ""}`}>
+          <li key={event.id} className={`${styles.agendaRow} ${event.presenters.some((person) => speakerText(person.name) || speakerText(person.job) || person.photo) ? styles.speakerRow : ""}`}>
             <div className={styles.timeColumn}>
               <span className={styles.time}>{event.time}</span>
             </div>
             <div className={styles.eventContent}>
               <h3 className={styles.eventTitle}>{event.title}</h3>
               {event.description && <p className={styles.eventDescription}>{event.description}</p>}
-              {speaker && <AgendaSpeaker speaker={speaker} />}
+              {event.presenters.map((person) => <AgendaSpeaker key={person.id} speaker={person} />)}
             </div>
           </li>
         ); })}
       </ol>
       <ol className={styles.mobileAgenda}>
         {programSpeakers.map((event, index) => {
-          const speaker = event;
           return (
           <li key={event.id} className={styles.mobileAgendaRow} data-row={index + 1}>
             <span className={styles.mobileTime}>{event.time}</span>
             <h3 className={styles.mobileEventTitle}>{event.title}</h3>
             {event.description && <p className={styles.mobileEventDescription}>{event.description}</p>}
-            {speaker && <AgendaSpeaker speaker={speaker} mobile />}
+            {event.presenters.map((person) => <AgendaSpeaker key={person.id} speaker={person} mobile />)}
           </li>
         ); })}
       </ol>
