@@ -10,16 +10,23 @@ import styles from "./schedule-speakers.module.css";
 
 
 
+function speakerText(value: string) {
+  const text = value.trim();
+  return /^(?:имя(?:\s+фамилия|\s+спикера скоро объявим)?|должность)$/iu.test(text) ? "" : text;
+}
+
 function AgendaSpeaker({ speaker, mobile = false }: { speaker: ProgramSpeaker; mobile?: boolean }) {
-  if (!speaker.name) return null;
+  const name = speakerText(speaker.name);
+  const job = speakerText(speaker.job);
+  if (!name && !job && !speaker.photo) return null;
   return (
     <div className={mobile ? styles.mobileAgendaSpeaker : styles.agendaSpeaker}>
-      {speaker.photo && <Image src={speaker.photo} width={mobile ? 80 : 100} height={mobile ? 80 : 100} alt={`Фото: ${speaker.name}`} sizes={mobile ? "80px" : "100px"} className={mobile ? styles.mobileAgendaPhoto : styles.agendaPhoto} unoptimized />}
-      <div className={mobile ? styles.mobileSpeakerCopy : styles.agendaSpeakerCopy}>
+      {speaker.photo && <Image src={speaker.photo} width={mobile ? 80 : 100} height={mobile ? 80 : 100} alt={name ? `Фото: ${name}` : "Фото спикера"} sizes={mobile ? "80px" : "100px"} className={mobile ? styles.mobileAgendaPhoto : styles.agendaPhoto} unoptimized />}
+      {(name || job) && <div className={mobile ? styles.mobileSpeakerCopy : styles.agendaSpeakerCopy}>
         <span>Спикер</span>
-        <p className={mobile ? styles.mobileAgendaName : styles.agendaSpeakerName}>{speaker.name}</p>
-        {speaker.job && <p>{speaker.job}</p>}
-      </div>
+        {name && <p className={mobile ? styles.mobileAgendaName : styles.agendaSpeakerName}>{name}</p>}
+        {job && <p>{job}</p>}
+      </div>}
     </div>
   );
 }
@@ -55,7 +62,7 @@ export function ScheduleSection({ initialProgramSpeakers }: { initialProgramSpea
         {agenda.map((event) => {
           const speaker = programSpeakers.find((item) => item.id === event.id);
           return (
-          <li key={event.id} className={`${styles.agendaRow} ${speaker?.name ? styles.speakerRow : ""}`}>
+          <li key={event.id} className={`${styles.agendaRow} ${speaker && (speakerText(speaker.name) || speakerText(speaker.job) || speaker.photo) ? styles.speakerRow : ""}`}>
             <div className={styles.timeColumn}>
               <span className={styles.time}>{event.time}</span>
             </div>
@@ -309,25 +316,28 @@ function SpeakersCarousel({ speakers }: { speakers: Speaker[] }) {
             if (event.target === event.currentTarget && event.propertyName === "transform") finishMove();
           }}
         >
-          {carouselSpeakers.map((speaker) => (
+          {carouselSpeakers.map((speaker) => {
+            const name = speakerText(speaker.name);
+            const job = speakerText(speaker.job);
+            return (
             <article key={`${speaker.copy}-${speaker.id}`} className={styles.speakerCard} aria-hidden={speaker.copy !== "original" ? true : undefined}>
               <div className={`${styles.speakerPortrait} ${styles[speaker.color]}`}>
                 {speaker.photo ? (
-                  <Image src={speaker.photo} alt={speaker.name} fill unoptimized className={styles.speakerPhoto} sizes="(max-width: 767px) 270px, 30vw" draggable={false} />
+                  <Image src={speaker.photo} alt={name ? `Фото: ${name}` : "Фото спикера"} fill unoptimized className={styles.speakerPhoto} sizes="(max-width: 767px) 270px, 30vw" draggable={false} />
                 ) : (
                   <Image src={`/assets/page/program-speaker-${speaker.art}.svg`} alt="" width={301} height={305} className={styles.speakerArt} draggable={false} />
                 )}
               </div>
               <div className={styles.speakerInfo}>
-                <h3 className={styles.speakerName}>{speaker.name}</h3>
-                {speaker.job && <p className={styles.speakerJob}>{speaker.job}</p>}
+                {name && <h3 className={styles.speakerName}>{name}</h3>}
+                {job && <p className={styles.speakerJob}>{job}</p>}
                 {(speaker.topic || speaker.time) && <div className={styles.speakerTalk}>
                   {speaker.topic && <p>{speaker.topic}</p>}
                   {speaker.time && <span>{speaker.time}</span>}
                 </div>}
               </div>
             </article>
-          ))}
+          ); })}
         </div>
       </div>
       {count > 1 && <>
