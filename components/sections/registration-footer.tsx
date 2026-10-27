@@ -179,12 +179,9 @@ export function FestivalFooter() {
       <div className={styles.footerTop}>
         <span className={styles.date}>20 ноября</span>
         <div className={styles.socials} aria-label="Социальные сети фестиваля">
-          <button type="button" disabled aria-label="Telegram — ссылка появится позже" title="Ссылка появится позже">
-            <Image src="/assets/page/telegram.svg" width={50} height={50} alt="Telegram" />
-          </button>
-          <button type="button" disabled aria-label="ВКонтакте — ссылка появится позже" title="Ссылка появится позже">
-            <Image src="/assets/page/vk.svg" width={50} height={50} alt="ВКонтакте" />
-          </button>
+          <a href="https://t.me/pdrmru" target="_blank" rel="noopener noreferrer" aria-label="Telegram фестиваля">
+            <Image src="/assets/page/telegram.svg" width={50} height={50} alt="" />
+          </a>
         </div>
       </div>
       <p className={styles.footerSubtitle}>Фестиваль молодых предпринимателей</p>

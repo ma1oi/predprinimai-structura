@@ -43,7 +43,7 @@
 .footerTop { display: flex; justify-content: space-between; align-items: center; padding-right: calc(75 * var(--footer-unit)); }
 .date { font: 400 calc(14 * var(--footer-unit))/calc(16 * var(--footer-unit)) var(--font-body); letter-spacing: -.03em; color: var(--color-kit-paper); }
 .socials { display: flex; gap: calc(10 * var(--footer-unit)); }
-.socials button { border: 0; padding: 0; background: transparent; cursor: default; }
+.socials a { display: block; border-radius: 50%; }
 .socials img { width: calc(50 * var(--footer-unit)); height: calc(50 * var(--footer-unit)); }
 .footerSubtitle { margin: calc(14 * var(--footer-unit)) 0 calc(21 * var(--footer-unit)); font-size: calc(25 * var(--footer-unit)); line-height: 1; text-transform: uppercase; }
 .wordmark { display: block; width: fit-content; max-width: 100%; color: inherit; text-decoration: none; font-size: calc(143 * var(--footer-unit)); line-height: 1; text-transform: uppercase; }

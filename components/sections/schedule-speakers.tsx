@@ -4,83 +4,21 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { ArrowButton } from "../ui";
 import type { Speaker } from "@/lib/speaker-types";
+import { programAgenda as agenda } from "@/lib/program-agenda";
 import type { ProgramSpeaker } from "@/lib/program-speaker-types";
 import styles from "./schedule-speakers.module.css";
 
-const agenda = [
-  {
-    "time": "11:00-12:00",
-    "title": "регистрация и знакомство",
-    "height": 67
-  },
-  {
-    "time": "12:00-12:05",
-    "title": "Открытие фестиваля",
-    "height": 67
-  },
-  {
-    "time": "12:05–12:50",
-    "title": "Спикер-сессия «Бизнес за зумерами: хайп или новая экономика?»",
-    "height": 103
-  },
-  {
-    "time": "12:50-13:20",
-    "title": "«Личная эффективность: почему сильные руководители работают меньше»",
-    "height": 103
-  },
-  {
-    "time": "13:20-13:50",
-    "title": "«Предприниматель: сколько стоит твой успех?»",
-    "height": 85
-  },
-  {
-    "time": "13:50-14:20",
-    "title": "Перерыв на кофе-брейк и интерактивы на площадке",
-    "height": 85
-  },
-  {
-    "time": "14:20-14:40",
-    "title": "Бизнес-батл «AI или здравый смысл?»",
-    "height": 80
-  },
-  {
-    "time": "14:40-15:15",
-    "title": "мастер-класс «нанять ai: как рекрутировать себе цифрового сотрудника»",
-    "height": 126,
-    "description": "Создание агентов для задач"
-  },
-  {
-    "time": "15:15-15:45",
-    "title": "«не просто говорить, а внедрять: ai внутри бизнес-процессов»",
-    "height": 185,
-    "speaker": "panfilov"
-  },
-  {
-    "time": "15:45-16:05",
-    "title": "«бизнес под наблюдением: что сегодня нельзя делать в интернете»",
-    "height": 103
-  },
-  {
-    "time": "16:05-16:45",
-    "title": "«Google уже мало: как нейросети выбирают бренды»",
-    "height": 193,
-    "speaker": "goncharenko"
-  },
-  {
-    "time": "16:45-16:50",
-    "title": "Закрытие фестиваля",
-    "height": 67
-  }
-];
 
-function AgendaSpeaker({ panfilov = false, photo = "" }: { panfilov?: boolean; photo?: string }) {
+
+function AgendaSpeaker({ speaker, mobile = false }: { speaker: ProgramSpeaker; mobile?: boolean }) {
+  if (!speaker.name) return null;
   return (
-    <div className={`${styles.agendaSpeaker} ${panfilov ? styles.panfilov : ""}`}>
-      <Image src={photo || `/assets/page/program-${panfilov ? "panfilov" : "goncharenko"}.png`} width={100} height={100} alt={photo ? panfilov ? "Максим Панфилов" : "Максим Гончаренко" : ""} sizes="100px" className={styles.agendaPhoto} />
-      <div className={styles.agendaSpeakerCopy}>
+    <div className={mobile ? styles.mobileAgendaSpeaker : styles.agendaSpeaker}>
+      {speaker.photo && <Image src={speaker.photo} width={mobile ? 80 : 100} height={mobile ? 80 : 100} alt={`Фото: ${speaker.name}`} sizes={mobile ? "80px" : "100px"} className={mobile ? styles.mobileAgendaPhoto : styles.agendaPhoto} unoptimized />}
+      <div className={mobile ? styles.mobileSpeakerCopy : styles.agendaSpeakerCopy}>
         <span>Спикер</span>
-        <p className={styles.agendaSpeakerName}>{panfilov ? "Максим Панфилов" : "Максим Гончаренко"}</p>
-        <p>{panfilov ? "Предприниматель, основатель panfilov.digital и panfilov.consulting" : "Предприниматель, маркетолог, аналитик. За 17 лет с нуля запустил 40+ проектов"}</p>
+        <p className={mobile ? styles.mobileAgendaName : styles.agendaSpeakerName}>{speaker.name}</p>
+        {speaker.job && <p>{speaker.job}</p>}
       </div>
     </div>
   );
@@ -98,7 +36,7 @@ export function ScheduleSection({ initialProgramSpeakers }: { initialProgramSpea
         const result = await response.json();
         if (Array.isArray(result.speakers)) setProgramSpeakers(result.speakers);
       } catch {
-        // Preserve the rendered photos while the connection is interrupted.
+        // Preserve the rendered speakers while the connection is interrupted.
       }
     };
     window.addEventListener("focus", refresh);
@@ -114,35 +52,32 @@ export function ScheduleSection({ initialProgramSpeakers }: { initialProgramSpea
       <h2 id="schedule-heading" className={styles.heading}>Как пройдет день</h2>
       <div className={styles.dateTime}><span>20 ноября</span><span>с 11:00 до {agenda[agenda.length - 1].time.split("-")[1]}</span></div>
       <ol className={styles.agenda}>
-        {agenda.map((event) => (
-          <li key={event.time} className={`${styles.agendaRow} ${event.speaker ? styles.speakerRow : ""}`}>
+        {agenda.map((event) => {
+          const speaker = programSpeakers.find((item) => item.id === event.id);
+          return (
+          <li key={event.id} className={`${styles.agendaRow} ${speaker?.name ? styles.speakerRow : ""}`}>
             <div className={styles.timeColumn}>
               <span className={styles.time}>{event.time}</span>
             </div>
             <div className={styles.eventContent}>
               <h3 className={styles.eventTitle}>{event.title}</h3>
               {event.description && <p className={styles.eventDescription}>{event.description}</p>}
-              {event.speaker && <AgendaSpeaker panfilov={event.speaker === "panfilov"} photo={programSpeakers.find((speaker) => speaker.id === event.speaker)?.photo} />}
+              {speaker && <AgendaSpeaker speaker={speaker} />}
             </div>
           </li>
-        ))}
+        ); })}
       </ol>
       <ol className={styles.mobileAgenda}>
-        {agenda.map((event, index) => (
-          <li key={event.time} className={styles.mobileAgendaRow} data-row={index + 1} style={{ "--mobile-row-height": `${event.height}px` } as CSSProperties}>
+        {agenda.map((event, index) => {
+          const speaker = programSpeakers.find((item) => item.id === event.id);
+          return (
+          <li key={event.id} className={styles.mobileAgendaRow} data-row={index + 1} style={{ "--mobile-row-height": `${event.height}px` } as CSSProperties}>
             <span className={styles.mobileTime}>{event.time}</span>
             <h3 className={styles.mobileEventTitle}>{event.title}</h3>
             {event.description && <p className={styles.mobileEventDescription}>{event.description}</p>}
-            {event.speaker && <div className={`${styles.mobileAgendaSpeaker} ${event.speaker === "panfilov" ? styles.mobilePanfilov : ""}`}>
-              <Image src={programSpeakers.find((speaker) => speaker.id === event.speaker)?.photo || `/assets/page/program-${event.speaker}.png`} width={80} height={80} alt="" sizes="80px" className={styles.mobileAgendaPhoto} />
-              <div className={styles.mobileSpeakerCopy}>
-                <span>Спикер</span>
-                <p className={styles.mobileAgendaName}>{event.speaker === "panfilov" ? "Максим Панфилов" : "Максим Гончаренко"}</p>
-                <p>{event.speaker === "panfilov" ? "Предприниматель, основатель panfilov.digital и panfilov.consulting" : "Предприниматель, маркетолог, аналитик. За 17 лет с нуля запустил 40+ проектов"}</p>
-              </div>
-            </div>}
+            {speaker && <AgendaSpeaker speaker={speaker} mobile />}
           </li>
-        ))}
+        ); })}
       </ol>
     </section>
   );

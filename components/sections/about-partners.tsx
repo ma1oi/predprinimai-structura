@@ -49,7 +49,6 @@ export function AboutSection() {
       <dl className={styles.stats}>
         <div className={styles.stat}><dt>01</dt><dd>день</dd></div>
         <div className={styles.stat}><dt>300</dt><dd>участников</dd></div>
-        <div className={styles.stat}><dt>02</dt><dd>города: Ярославль и Москва</dd></div>
       </dl>
       <h3 className={styles.benefitsHeading}>Что ты получишь</h3>
       <div className={styles.benefits}>

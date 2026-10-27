@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
+import { programAgenda } from "@/lib/program-agenda";
 import type { ProgramSpeaker, ProgramSpeakerDocument, ProgramSpeakerId } from "@/lib/program-speaker-types";
 import styles from "./admin.module.css";
 
@@ -70,8 +71,8 @@ export function ProgramSpeakersAdmin({ active, onSessionExpired, onStateChange }
     return () => window.removeEventListener("beforeunload", beforeUnload);
   }, [dirty]);
 
-  function updatePhoto(id: ProgramSpeakerId, photo: string) {
-    setSpeakers((current) => current.map((speaker) => speaker.id === id ? { ...speaker, photo } : speaker));
+  function updateSpeaker(id: ProgramSpeakerId, patch: Partial<Omit<ProgramSpeaker, "id">>) {
+    setSpeakers((current) => current.map((speaker) => speaker.id === id ? { ...speaker, ...patch } : speaker));
     setSuccess("");
   }
 
@@ -85,29 +86,50 @@ export function ProgramSpeakersAdmin({ active, onSessionExpired, onStateChange }
     setUploading(id); setError(""); setSuccess("");
     try {
       const result = await request<{ url: string }>("/api/admin/upload", { method: "POST", body: form });
-      updatePhoto(id, result.url);
+      updateSpeaker(id, { photo: result.url });
     } catch (reason) { handleError(reason); }
     finally { setUploading(null); }
   }
 
   async function save() {
+    const invalid = speakers.find((speaker) => !speaker.name.trim() && (speaker.job.trim() || speaker.photo));
+    if (invalid) {
+      setError("Укажите имя спикера или очистите его описание и фото.");
+      document.getElementById(`program-name-${invalid.id}`)?.focus();
+      return;
+    }
     setBusy(true); setError(""); setSuccess("");
     try {
       const document = await request<ProgramSpeakerDocument>("/api/admin/program-speakers", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ speakers, revision }) });
       setSpeakers(document.speakers); setRevision(document.revision); setSaved(JSON.stringify(document.speakers));
-      setConflict(false); setSuccess("Сохранено. Фотографии в программе уже обновлены на сайте.");
+      setConflict(false); setSuccess("Сохранено. Спикеры программы обновлены на сайте.");
     } catch (reason) { handleError(reason); }
     finally { setBusy(false); }
   }
 
   return <>
-    <div className={styles.pageHeading}><div><h1>Программа</h1><p className={styles.muted}>Фотографии спикеров в блоке «Как пройдет день».</p></div><a className={styles.previewLink} href="/#schedule" target="_blank" rel="noopener noreferrer">Посмотреть на сайте <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6 4h10v10M16 4 4 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></a></div>
-    {(error || conflict) && <div className={styles.error} role="alert"><p>{error || "Фотографии изменены в другой вкладке."}</p>{conflict && <><p>Ваши правки остались в этой вкладке. Загрузите актуальные фотографии, чтобы продолжить.</p><button className={styles.secondary} disabled={locked} onClick={() => setConfirmReload(true)}>Загрузить актуальные фотографии</button></>}</div>}
+    <div className={styles.pageHeading}><div><h1>Программа</h1><p className={styles.muted}>Спикеры каждого пункта в блоке «Как пройдет день». Имя, должность или описание и фото. Пустые блоки не показываются на сайте.</p></div><a className={styles.previewLink} href="/#schedule" target="_blank" rel="noopener noreferrer">Посмотреть на сайте <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6 4h10v10M16 4 4 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></a></div>
+    {(error || conflict) && <div className={styles.error} role="alert"><p>{error || "Программа изменена в другой вкладке."}</p>{conflict && <><p>Ваши правки остались в этой вкладке. Загрузите актуальные данные, чтобы продолжить.</p><button className={styles.secondary} disabled={locked} onClick={() => setConfirmReload(true)}>Загрузить актуальные данные</button></>}</div>}
     {success && <p className={styles.success} role="status">{success}</p>}
-    {confirmReload && <div className={styles.confirmation} role="alert"><p>Загрузить фотографии с сервера? Несохранённые правки в программе будут потеряны.</p><div className={styles.actions}><button className={styles.danger} disabled={locked} onClick={() => void load()}>Загрузить и заменить правки</button><button className={styles.secondary} disabled={locked} onClick={() => setConfirmReload(false)}>Продолжить редактирование</button></div></div>}
-    {!loaded ? <section className={styles.loading} aria-busy={busy}><h2>{busy ? "Загружаем фотографии…" : "Не удалось загрузить фотографии"}</h2>{!busy && <button className={styles.secondary} onClick={() => void load()}>Повторить загрузку</button>}</section> : <>
-      <div className={styles.programPhotos}>{speakers.map((speaker) => <section key={speaker.id} className={styles.editor} aria-labelledby={`program-${speaker.id}-heading`}><div className={styles.editorHeading}><h2 id={`program-${speaker.id}-heading`}>{speaker.name}</h2></div><fieldset className={styles.fields} disabled={locked}><legend className={styles.srOnly}>Фотография: {speaker.name}</legend><div className={`${styles.photoField} ${styles.programPhotoField}`}><div className={`${styles.photoPreview} ${styles.lavender}`}>{speaker.photo ? <Image src={speaker.photo} alt={`Фото: ${speaker.name}`} width={116} height={142} unoptimized /> : <span>Фото<br />не загружено</span>}</div><div className={styles.photoControls}><label htmlFor={`program-photo-${speaker.id}`}>Фотография</label><input ref={(element) => { inputs.current[speaker.id] = element; }} id={`program-photo-${speaker.id}`} type="file" accept="image/jpeg,image/png,image/webp,image/avif" aria-describedby={`program-photo-help-${speaker.id}`} className={styles.fileInput} onChange={(event) => void uploadPhoto(speaker.id, event)} /><button type="button" className={styles.secondary} onClick={() => inputs.current[speaker.id]?.click()}>{uploading === speaker.id ? "Загружаем…" : speaker.photo ? "Заменить фото" : "Загрузить фото"}</button><p id={`program-photo-help-${speaker.id}`}>JPG, PNG, WebP или AVIF, до 8 МБ.<br />Лучше вертикальный портрет.</p>{speaker.photo && <button type="button" className={styles.removePhoto} onClick={() => updatePhoto(speaker.id, "")}>Убрать фото</button>}</div></div></fieldset></section>)}</div>
-      <div className={styles.saveBar}><div aria-live="polite"><strong>{uploading ? "Загружаем фотографию…" : busy ? "Сохраняем фотографии…" : dirty ? "Есть несохранённые изменения" : "Все изменения сохранены"}</strong><p>{dirty ? "Сохранение обновит фотографии в программе на сайте." : "Можно открыть сайт и проверить программу."}</p></div><button type="button" className={styles.primary} disabled={locked || !dirty || conflict} onClick={() => void save()}>{busy ? "Сохраняем…" : "Сохранить фотографии"}</button></div>
+    {confirmReload && <div className={styles.confirmation} role="alert"><p>Загрузить программу с сервера? Несохранённые правки в программе будут потеряны.</p><div className={styles.actions}><button className={styles.danger} disabled={locked} onClick={() => void load()}>Загрузить и заменить правки</button><button className={styles.secondary} disabled={locked} onClick={() => setConfirmReload(false)}>Продолжить редактирование</button></div></div>}
+    {!loaded ? <section className={styles.loading} aria-busy={busy}><h2>{busy ? "Загружаем программу…" : "Не удалось загрузить программу"}</h2>{!busy && <button className={styles.secondary} onClick={() => void load()}>Повторить загрузку</button>}</section> : <>
+      <div className={styles.programPhotos}>{speakers.map((speaker) => {
+        const event = programAgenda.find((item) => item.id === speaker.id)!;
+        return <section key={speaker.id} className={styles.editor} aria-labelledby={`program-${speaker.id}-heading`}>
+          <div className={styles.editorHeading}><div><p className={styles.muted}>{event.time}</p><h2 id={`program-${speaker.id}-heading`}>{event.title}</h2></div></div>
+          <fieldset className={styles.fields} disabled={locked}>
+            <legend className={styles.srOnly}>Спикер: {event.title}</legend>
+            <div className={styles.field}><label htmlFor={`program-name-${speaker.id}`}>Имя и фамилия спикера</label><input id={`program-name-${speaker.id}`} maxLength={120} autoComplete="off" value={speaker.name} onChange={(event) => updateSpeaker(speaker.id, { name: event.target.value })} placeholder="Например, Анна Смирнова" /></div>
+            <div className={styles.field}><label htmlFor={`program-job-${speaker.id}`}>Должность и описание</label><textarea id={`program-job-${speaker.id}`} rows={3} maxLength={300} value={speaker.job} onChange={(event) => updateSpeaker(speaker.id, { job: event.target.value })} placeholder="Должность, компания или коротко о спикере" /></div>
+            <div className={`${styles.photoField} ${styles.programPhotoField}`}>
+              <div className={`${styles.photoPreview} ${styles.lavender}`}>{speaker.photo ? <Image src={speaker.photo} alt={`Фото: ${speaker.name || "спикер"}`} width={116} height={142} unoptimized /> : <span>Фото<br />не загружено</span>}</div>
+              <div className={styles.photoControls}><label htmlFor={`program-photo-${speaker.id}`}>Фотография</label><input ref={(element) => { inputs.current[speaker.id] = element; }} id={`program-photo-${speaker.id}`} type="file" accept="image/jpeg,image/png,image/webp,image/avif" aria-describedby={`program-photo-help-${speaker.id}`} className={styles.fileInput} onChange={(event) => void uploadPhoto(speaker.id, event)} /><button type="button" className={styles.secondary} onClick={() => inputs.current[speaker.id]?.click()}>{uploading === speaker.id ? "Загружаем…" : speaker.photo ? "Заменить фото" : "Загрузить фото"}</button><p id={`program-photo-help-${speaker.id}`}>JPG, PNG, WebP или AVIF, до 8 МБ.<br />Фото необязательно.</p>{speaker.photo && <button type="button" className={styles.removePhoto} onClick={() => updateSpeaker(speaker.id, { photo: "" })}>Убрать фото</button>}</div>
+            </div>
+            {(speaker.name || speaker.job || speaker.photo) && <button type="button" className={styles.removePhoto} onClick={() => updateSpeaker(speaker.id, { name: "", job: "", photo: "" })}>Очистить данные спикера</button>}
+          </fieldset>
+        </section>;
+      })}</div>
+      <div className={styles.saveBar}><div aria-live="polite"><strong>{uploading ? "Загружаем фотографию…" : busy ? "Сохраняем программу…" : dirty ? "Есть несохранённые изменения" : "Все изменения сохранены"}</strong><p>{dirty ? "Сохранение обновит спикеров в программе на сайте." : "Можно открыть сайт и проверить программу."}</p></div><button type="button" className={styles.primary} disabled={locked || !dirty || conflict} onClick={() => void save()}>{busy ? "Сохраняем…" : "Сохранить программу"}</button></div>
     </>}
   </>;
 }

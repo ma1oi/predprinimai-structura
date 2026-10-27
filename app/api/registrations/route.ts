@@ -1,7 +1,7 @@
 import { AdminRequestError, adminJson, enforceSameOrigin, readRequestBody, requestErrorResponse } from "@/lib/admin-auth";
 import { addRegistration, RegistrationStoreError } from "@/lib/registration-store";
 import { after } from "next/server";
-import { googleSheetsConfigured, syncGoogleRegistrations } from "@/lib/registration-google-sync";
+import { yandexDiskConfigured, syncYandexRegistrations } from "@/lib/registration-yandex-sync";
 
 export const runtime = "nodejs";
 const submissionWindow = { started: 0, attempts: 0 };
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       throw new AdminRequestError("Некорректный JSON.", 400);
     }
     const result = await addRegistration(input);
-    if (googleSheetsConfigured()) after(() => syncGoogleRegistrations());
+    if (yandexDiskConfigured()) after(() => syncYandexRegistrations());
     return adminJson({ success: true, duplicate: result.duplicate }, result.duplicate ? 200 : 201);
   } catch (error) {
     return requestErrorResponse(error instanceof AdminRequestError || error instanceof RegistrationStoreError ? error : new Error("Registration submission failed"));

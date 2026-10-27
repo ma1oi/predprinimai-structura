@@ -1,13 +1,16 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { programAgenda } from "./program-agenda";
 import { speakerPhotoPattern } from "./speaker-store";
 import type { ProgramSpeaker, ProgramSpeakerDocument } from "./program-speaker-types";
 
-const identities = [
-  { id: "panfilov", name: "Максим Панфилов" },
-  { id: "goncharenko", name: "Максим Гончаренко" },
-] as const;
+function defaults(): ProgramSpeaker[] {
+  return programAgenda.map(({ id }) => ({ id, name: "Имя", job: "Должность", photo: "", ...(
+    id === "panfilov" ? { name: "Максим Панфилов", job: "Предприниматель, основатель panfilov.digital и panfilov.consulting" }
+    : id === "goncharenko" ? { name: "Максим Гончаренко", job: "Предприниматель, маркетолог, аналитик. За 17 лет с нуля запустил 40+ проектов" } : {}
+  ) }));
+}
 const queues = new Map<string, Promise<unknown>>();
 
 export class ProgramSpeakerStoreError extends Error {
@@ -16,26 +19,47 @@ export class ProgramSpeakerStoreError extends Error {
 }
 
 export function validateProgramSpeakerDocument(value: unknown): ProgramSpeakerDocument {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new ProgramSpeakerStoreError("Некорректные фотографии программы.");
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new ProgramSpeakerStoreError("Некорректные данные спикеров программы.");
   const input = value as Record<string, unknown>;
-  if (typeof input.revision !== "string" || !input.revision || input.revision.length > 128) throw new ProgramSpeakerStoreError("Обновите фотографии и повторите сохранение.");
-  if (!Array.isArray(input.speakers) || input.speakers.length !== 2) throw new ProgramSpeakerStoreError("В программе должны остаться два спикера.");
-  const photos = new Map<string, string>();
+  if (typeof input.revision !== "string" || !input.revision || input.revision.length > 128) throw new ProgramSpeakerStoreError("Обновите программу и повторите сохранение.");
+  if (!Array.isArray(input.speakers) || input.speakers.length !== programAgenda.length) throw new ProgramSpeakerStoreError("Укажите данные для каждого пункта программы.");
+  const speakers = new Map<string, ProgramSpeaker>();
   for (const value of input.speakers) {
-    if (!value || typeof value !== "object" || Array.isArray(value)) throw new ProgramSpeakerStoreError("Некорректная фотография спикера.");
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new ProgramSpeakerStoreError("Некорректные данные спикера.");
     const item = value as Record<string, unknown>;
-    if ((item.id !== "panfilov" && item.id !== "goncharenko") || photos.has(item.id)) throw new ProgramSpeakerStoreError("Состав спикеров программы нельзя изменить.");
+    const event = programAgenda.find((event) => event.id === item.id);
+    if (!event || speakers.has(event.id)) throw new ProgramSpeakerStoreError("Пункты программы должны быть уникальными.");
+    const name = text(item.name, "Имя спикера", 120);
+    const job = text(item.job, "Описание спикера", 300);
     if (typeof item.photo !== "string" || (item.photo !== "" && !speakerPhotoPattern.test(item.photo))) throw new ProgramSpeakerStoreError("Загрузите фото через форму.");
-    photos.set(item.id, item.photo);
+    if (!name && (job || item.photo)) throw new ProgramSpeakerStoreError("Укажите имя спикера или очистите его описание и фото.");
+    speakers.set(event.id, { id: event.id, name, job, photo: item.photo });
   }
-  return { speakers: identities.map((identity) => ({ ...identity, photo: photos.get(identity.id)! })), revision: input.revision };
+  return { speakers: programAgenda.map((event) => speakers.get(event.id)!), revision: input.revision };
+}
+
+function text(value: unknown, label: string, max: number): string {
+  if (typeof value !== "string" || value.trim().length > max || /[\u0000-\u001f\u007f]/.test(value)) throw new ProgramSpeakerStoreError(`${label}: укажите текст до ${max} символов.`);
+  return value.trim();
+}
+
+function migrateLegacy(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const old = (value as Record<string, unknown>).speakers;
+  if (!Array.isArray(old) || old.length !== 2) return value;
+  const legacy = old as Record<string, unknown>[];
+  if (!legacy.every((item) => item && typeof item === "object" && !Object.hasOwn(item, "job") && (item.id === "panfilov" || item.id === "goncharenko")) || new Set(legacy.map((item) => item.id)).size !== 2) return value;
+  return { speakers: defaults().map((speaker) => {
+    const previous = legacy.find((item) => item.id === speaker.id);
+    return previous ? { ...speaker, photo: previous.photo } : speaker;
+  }) };
 }
 
 function documentFor(speakers: ProgramSpeaker[]): ProgramSpeakerDocument {
   return { speakers, revision: createHash("sha256").update(JSON.stringify(speakers)).digest("hex") };
 }
 
-/** Program photos live independently from speaker cards and registrations. */
+/** Per-event speakers live independently from carousel cards and registrations. */
 export class ProgramSpeakerStore {
   readonly directory: string;
   readonly filename: string;
@@ -51,9 +75,9 @@ export class ProgramSpeakerStore {
       content = JSON.parse(await readFile(this.filename, "utf8"));
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-      content = { speakers: identities.map((identity) => ({ ...identity, photo: "" })) };
+      content = { speakers: defaults() };
     }
-    const speakers = validateProgramSpeakerDocument({ ...(content as object), revision: "stored" }).speakers;
+    const speakers = validateProgramSpeakerDocument({ ...(migrateLegacy(content) as object), revision: "stored" }).speakers;
     return documentFor(speakers);
   }
 
@@ -62,7 +86,7 @@ export class ProgramSpeakerStore {
     const previous = queues.get(this.filename) ?? Promise.resolve();
     const operation = previous.catch(() => undefined).then(async () => {
       const current = await this.read();
-      if (input.revision !== current.revision) throw new ProgramSpeakerStoreError("Фотографии уже изменены в другой вкладке. Загрузите актуальные фотографии перед сохранением.", 409);
+      if (input.revision !== current.revision) throw new ProgramSpeakerStoreError("Программа уже изменена в другой вкладке. Загрузите актуальные данные перед сохранением.", 409);
       const document = documentFor(input.speakers);
       await mkdir(this.directory, { recursive: true, mode: 0o700 });
       const temporary = path.join(this.directory, `.program-speakers-${randomUUID()}.tmp`);
