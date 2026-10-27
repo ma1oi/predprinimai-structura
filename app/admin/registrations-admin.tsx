@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Registration } from "@/lib/registration-types";
-import type { YandexDiskSyncStatus } from "@/lib/yandex-disk-types";
+import type { YandexWikiSyncStatus } from "@/lib/yandex-wiki-types";
 import styles from "./admin.module.css";
 
 const PAGE_SIZE = 50;
@@ -42,7 +42,7 @@ export function RegistrationsAdmin({ onSessionExpired }: { onSessionExpired: () 
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
   const [exportMessage, setExportMessage] = useState("");
-  const [yandexDisk, setYandexDisk] = useState<YandexDiskSyncStatus | null>(null);
+  const [wiki, setWiki] = useState<YandexWikiSyncStatus | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState("");
   const [search, setSearch] = useState("");
@@ -55,11 +55,11 @@ export function RegistrationsAdmin({ onSessionExpired }: { onSessionExpired: () 
     return fetch("/api/admin/registrations", { cache: "no-store", signal }).then(async (response) => {
       if (response.status === 401) { onSessionExpired(); return; }
       if (!response.ok) throw new Error(await responseError(response, "Не удалось загрузить заявки. Повторите загрузку."));
-      const body: { registrations: Registration[]; yandexDisk?: YandexDiskSyncStatus } = await response.json();
+      const body: { registrations: Registration[]; wiki?: YandexWikiSyncStatus } = await response.json();
       if (!Array.isArray(body.registrations)) throw new Error("Не удалось прочитать список заявок. Повторите загрузку.");
       if (!signal.aborted) {
         setRegistrations(body.registrations);
-        setYandexDisk(body.yandexDisk ?? null);
+        setWiki(body.wiki ?? null);
         setLoaded(true);
       }
     }).catch((reason: unknown) => {
@@ -97,12 +97,12 @@ export function RegistrationsAdmin({ onSessionExpired }: { onSessionExpired: () 
       if (response.status === 401) { onSessionExpired(); return; }
       const body = await response.json().catch(() => null);
       if (controller.signal.aborted) return;
-      if (body?.yandexDisk) setYandexDisk(body.yandexDisk);
+      if (body?.wiki) setWiki(body.wiki);
       if (!response.ok) {
-        if (!body?.yandexDisk) setError(body?.error || "Не удалось отправить заявки в Яндекс Диск. Попробуйте ещё раз.");
+        if (!body?.wiki) setError(body?.error || "Не удалось отправить заявки в Яндекс Вики. Попробуйте ещё раз.");
         return;
       }
-      setSyncMessage(`Синхронизация завершена. Заявок сайта синхронизировано: ${body.yandexDisk.total}.`);
+      setSyncMessage(`Синхронизация завершена. Добавлено новых заявок: ${body.wiki.added}. Всего синхронизировано: ${body.wiki.total}.`);
     } catch {
       if (!controller.signal.aborted) setError("Не удалось связаться с сервером. Заявки сохранены; повторите синхронизацию.");
     } finally {
@@ -162,13 +162,13 @@ export function RegistrationsAdmin({ onSessionExpired }: { onSessionExpired: () 
     </div>
     {error && <div className={styles.error} role="alert"><p>{error}</p></div>}
     {exportMessage && <p className={styles.success} role="status">{exportMessage}</p>}
-    {yandexDisk && <section className={styles.yandexDiskPanel} aria-label="Синхронизация с Яндекс Диском" aria-busy={syncing}>
-      <div><h2>Яндекс Таблицы</h2><p>{!yandexDisk.configured ? "Подключение ещё не настроено. Заявки сохраняются в админке и доступны в Excel." : yandexDisk.syncing || syncing ? "Синхронизируем заявки…" : yandexDisk.lastSyncedAt ? `Последняя синхронизация: ${formatDate(yandexDisk.lastSyncedAt)}. Заявок: ${yandexDisk.total}.` : "Новые заявки автоматически обновляют XLSX на Яндекс Диске. Для выгрузки сохранённых заявок нажмите «Синхронизировать»."}</p>
-        <p className={styles.muted}>Файл: {yandexDisk.path}. Формируется заново из заявок сайта; ручные правки в нём будут заменены.</p>
-        {yandexDisk.error && <p className={styles.yandexDiskError} role="alert">{yandexDisk.error}</p>}
+    {wiki && <section className={styles.wikiPanel} aria-label="Синхронизация с Яндекс Вики" aria-busy={syncing}>
+      <div><h2>Яндекс Вики</h2><p>{!wiki.configured ? "Подключение ещё не настроено. Заявки сохраняются в админке и доступны в Excel." : wiki.syncing || syncing ? "Синхронизируем заявки…" : wiki.lastSyncedAt ? `Последняя синхронизация: ${formatDate(wiki.lastSyncedAt)}. Заявок: ${wiki.total}.` : "Новые заявки автоматически добавляются строками в таблицу Вики. Для отправки сохранённых заявок нажмите «Синхронизировать»."}</p>
+        <p className={styles.muted}>Уже отправленные заявки пропускаются. Существующие строки и дополнительные столбцы сохраняются.</p>
+        {wiki.error && <p className={styles.wikiError} role="alert">{wiki.error}</p>}
         {syncMessage && <p className={styles.success} role="status">{syncMessage}</p>}
       </div>
-      <div className={styles.yandexDiskActions}>{yandexDisk.url && <a href={yandexDisk.url} target="_blank" rel="noopener noreferrer">Открыть Яндекс Диск</a>}<button className={styles.secondary} type="button" disabled={!yandexDisk.configured || syncing} onClick={() => void syncRegistrations()}>{syncing ? "Синхронизируем…" : "Синхронизировать"}</button></div>
+      <div className={styles.wikiActions}>{wiki.url && <a href={wiki.url} target="_blank" rel="noopener noreferrer">Открыть таблицу в Вики</a>}<button className={styles.secondary} type="button" disabled={!wiki.configured || syncing} onClick={() => void syncRegistrations()}>{syncing ? "Синхронизируем…" : "Синхронизировать"}</button></div>
     </section>}
     {!loaded ? <section className={styles.loading} aria-busy={loading}><h2>{loading ? "Загружаем заявки…" : "Список заявок не загружен"}</h2>{!loading && <button className={styles.secondary} type="button" onClick={reload}>Повторить загрузку</button>}</section> : <div className={styles.registrations} aria-busy={loading}>
       <div className={styles.registrationToolbar}>

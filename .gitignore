@@ -14,3 +14,4 @@ design/**/*admin*.png
 
 # Local Yandex OAuth token; never commit credentials.
 yandex-disk-token.txt
+yandex-wiki-token.txt
