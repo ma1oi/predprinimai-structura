@@ -2,9 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Registration } from "@/lib/registration-types";
+import type { GoogleSheetsSyncStatus } from "@/lib/google-sheets-types";
 import type { YandexWikiSyncStatus } from "@/lib/yandex-wiki-types";
 import styles from "./admin.module.css";
 
+type Destination = "google" | "wiki";
+type SyncStatus = GoogleSheetsSyncStatus | YandexWikiSyncStatus;
+const syncDestinations = [
+  { id: "google", title: "Google Таблица", link: "Открыть Google Таблицу", endpoint: "/api/admin/registrations/sync/google" },
+  { id: "wiki", title: "Яндекс Вики", link: "Открыть таблицу в Вики", endpoint: "/api/admin/registrations/sync" },
+] as const;
 const PAGE_SIZE = 50;
 const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
   dateStyle: "short",
@@ -42,24 +49,25 @@ export function RegistrationsAdmin({ onSessionExpired }: { onSessionExpired: () 
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
   const [exportMessage, setExportMessage] = useState("");
-  const [wiki, setWiki] = useState<YandexWikiSyncStatus | null>(null);
-  const [syncing, setSyncing] = useState(false);
-  const [syncMessage, setSyncMessage] = useState("");
+  const [statuses, setStatuses] = useState<Partial<Record<Destination, SyncStatus>>>({});
+  const [syncing, setSyncing] = useState<Partial<Record<Destination, boolean>>>({});
+  const [syncMessages, setSyncMessages] = useState<Partial<Record<Destination, string>>>({});
+  const [syncErrors, setSyncErrors] = useState<Partial<Record<Destination, string>>>({});
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const listController = useRef<AbortController | null>(null);
   const exportController = useRef<AbortController | null>(null);
-  const syncController = useRef<AbortController | null>(null);
+  const syncControllers = useRef<Partial<Record<Destination, AbortController>>>({});
 
   const load = useCallback((signal: AbortSignal) => {
     return fetch("/api/admin/registrations", { cache: "no-store", signal }).then(async (response) => {
       if (response.status === 401) { onSessionExpired(); return; }
       if (!response.ok) throw new Error(await responseError(response, "Не удалось загрузить заявки. Повторите загрузку."));
-      const body: { registrations: Registration[]; wiki?: YandexWikiSyncStatus } = await response.json();
+      const body: { registrations: Registration[]; wiki?: YandexWikiSyncStatus; google?: GoogleSheetsSyncStatus } = await response.json();
       if (!Array.isArray(body.registrations)) throw new Error("Не удалось прочитать список заявок. Повторите загрузку.");
       if (!signal.aborted) {
         setRegistrations(body.registrations);
-        setWiki(body.wiki ?? null);
+        setStatuses({ wiki: body.wiki, google: body.google });
         setLoaded(true);
       }
     }).catch((reason: unknown) => {
@@ -71,10 +79,18 @@ export function RegistrationsAdmin({ onSessionExpired }: { onSessionExpired: () 
 
   useEffect(() => {
     const controller = new AbortController();
+    const controllers = syncControllers.current;
     listController.current = controller;
     void load(controller.signal);
-    return () => { listController.current?.abort(); exportController.current?.abort(); syncController.current?.abort(); };
+    return () => { listController.current?.abort(); exportController.current?.abort(); Object.values(controllers).forEach((controller) => controller.abort()); };
   }, [load]);
+
+  useEffect(() => {
+    if (!Object.values(statuses).some((status) => status?.syncing)) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => { void load(controller.signal); }, 1500);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [statuses, load]);
 
   function reload() {
     listController.current?.abort();
@@ -85,28 +101,31 @@ export function RegistrationsAdmin({ onSessionExpired }: { onSessionExpired: () 
     void load(controller.signal);
   }
 
-  async function syncRegistrations() {
-    if (syncing) return;
+  async function syncRegistrations(destination: Destination) {
+    if (syncing[destination]) return;
     const controller = new AbortController();
-    syncController.current = controller;
-    setSyncing(true);
-    setSyncMessage("");
-    setError("");
+    syncControllers.current[destination] = controller;
+    setSyncing((current) => ({ ...current, [destination]: true }));
+    setSyncMessages((current) => ({ ...current, [destination]: "" }));
+    setSyncErrors((current) => ({ ...current, [destination]: "" }));
     try {
-      const response = await fetch("/api/admin/registrations/sync", { method: "POST", signal: controller.signal });
+      const endpoint = syncDestinations.find((item) => item.id === destination)!.endpoint;
+      const response = await fetch(endpoint, { method: "POST", signal: controller.signal });
       if (response.status === 401) { onSessionExpired(); return; }
       const body = await response.json().catch(() => null);
       if (controller.signal.aborted) return;
-      if (body?.wiki) setWiki(body.wiki);
+      const status = body?.[destination] as SyncStatus | undefined;
+      if (status) setStatuses((current) => ({ ...current, [destination]: status }));
       if (!response.ok) {
-        if (!body?.wiki) setError(body?.error || "Не удалось отправить заявки в Яндекс Вики. Попробуйте ещё раз.");
+        if (!status?.error) setSyncErrors((current) => ({ ...current, [destination]: body?.error || "Не удалось отправить заявки. Попробуйте ещё раз." }));
         return;
       }
-      setSyncMessage(`Синхронизация завершена. Добавлено новых заявок: ${body.wiki.added}. Всего синхронизировано: ${body.wiki.total}.`);
+      if (!status) throw new Error("Missing sync status");
+      setSyncMessages((current) => ({ ...current, [destination]: `Синхронизация завершена. Добавлено новых заявок: ${status.added}. Всего синхронизировано: ${status.total}.` }));
     } catch {
-      if (!controller.signal.aborted) setError("Не удалось связаться с сервером. Заявки сохранены; повторите синхронизацию.");
+      if (!controller.signal.aborted) setSyncErrors((current) => ({ ...current, [destination]: "Не удалось связаться с сервером. Заявки сохранены; повторите синхронизацию." }));
     } finally {
-      if (!controller.signal.aborted) setSyncing(false);
+      if (!controller.signal.aborted) setSyncing((current) => ({ ...current, [destination]: false }));
     }
   }
 
@@ -162,14 +181,20 @@ export function RegistrationsAdmin({ onSessionExpired }: { onSessionExpired: () 
     </div>
     {error && <div className={styles.error} role="alert"><p>{error}</p></div>}
     {exportMessage && <p className={styles.success} role="status">{exportMessage}</p>}
-    {wiki && <section className={styles.wikiPanel} aria-label="Синхронизация с Яндекс Вики" aria-busy={syncing}>
-      <div><h2>Яндекс Вики</h2><p>{!wiki.configured ? "Подключение ещё не настроено. Заявки сохраняются в админке и доступны в Excel." : wiki.syncing || syncing ? "Синхронизируем заявки…" : wiki.lastSyncedAt ? `Последняя синхронизация: ${formatDate(wiki.lastSyncedAt)}. Заявок: ${wiki.total}.` : "Новые заявки автоматически добавляются строками в таблицу Вики. Для отправки сохранённых заявок нажмите «Синхронизировать»."}</p>
-        <p className={styles.muted}>Уже отправленные заявки пропускаются. Существующие строки и дополнительные столбцы сохраняются.</p>
-        {wiki.error && <p className={styles.wikiError} role="alert">{wiki.error}</p>}
-        {syncMessage && <p className={styles.success} role="status">{syncMessage}</p>}
-      </div>
-      <div className={styles.wikiActions}>{wiki.url && <a href={wiki.url} target="_blank" rel="noopener noreferrer">Открыть таблицу в Вики</a>}<button className={styles.secondary} type="button" disabled={!wiki.configured || syncing} onClick={() => void syncRegistrations()}>{syncing ? "Синхронизируем…" : "Синхронизировать"}</button></div>
-    </section>}
+    {syncDestinations.map((destination) => {
+      const status = statuses[destination.id];
+      if (!status) return null;
+      const isSyncing = Boolean(syncing[destination.id] || status.syncing);
+      const syncError = syncErrors[destination.id] || status.error;
+      return <section key={destination.id} className={styles.syncPanel} aria-label={`Синхронизация: ${destination.title}`} aria-busy={isSyncing}>
+        <div><h2>{destination.title}</h2><p>{!status.configured ? "Подключение ещё не настроено. Заявки сохраняются в админке и доступны в Excel." : isSyncing ? "Синхронизируем заявки…" : status.lastSyncedAt ? `Последняя синхронизация: ${formatDate(status.lastSyncedAt)}. Заявок: ${status.total}.` : "Новые заявки автоматически добавляются строками. Для отправки сохранённых заявок нажмите «Синхронизировать»."}</p>
+          <p className={styles.muted}>Уже отправленные заявки пропускаются. Существующие строки сохраняются. Подключения работают независимо.</p>
+          {syncError && <p className={styles.syncError} role="alert">{syncError}</p>}
+          {syncMessages[destination.id] && <p className={styles.success} role="status">{syncMessages[destination.id]}</p>}
+        </div>
+        <div className={styles.syncActions}>{status.url && <a href={status.url} target="_blank" rel="noopener noreferrer">{destination.link}</a>}<button className={styles.secondary} type="button" disabled={!status.configured || isSyncing} onClick={() => void syncRegistrations(destination.id)}>{isSyncing ? "Синхронизируем…" : "Синхронизировать"}</button></div>
+      </section>;
+    })}
     {!loaded ? <section className={styles.loading} aria-busy={loading}><h2>{loading ? "Загружаем заявки…" : "Список заявок не загружен"}</h2>{!loading && <button className={styles.secondary} type="button" onClick={reload}>Повторить загрузку</button>}</section> : <div className={styles.registrations} aria-busy={loading}>
       <div className={styles.registrationToolbar}>
         <div className={styles.registrationCount} role="status"><strong>Всего заявок: {registrations.length}</strong><p>Excel содержит все заявки, включая скрытые поиском.</p></div>

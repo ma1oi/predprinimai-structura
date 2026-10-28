@@ -1,9 +1,10 @@
 import { AdminRequestError, adminJson, enforceSameOrigin, readRequestBody, requestErrorResponse } from "@/lib/admin-auth";
 import { addRegistration, RegistrationStoreError } from "@/lib/registration-store";
 import { after } from "next/server";
-import { yandexWikiConfigured, syncYandexWikiRegistrations } from "@/lib/registration-wiki-sync";
+import { registrationSyncConfigured, syncRegistrationDestinations } from "@/lib/registration-sync";
 
 export const runtime = "nodejs";
+export const maxDuration = 120;
 const submissionWindow = { started: 0, attempts: 0 };
 
 export async function POST(request: Request) {
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
       throw new AdminRequestError("Некорректный JSON.", 400);
     }
     const result = await addRegistration(input);
-    if (yandexWikiConfigured()) after(() => syncYandexWikiRegistrations());
+    if (registrationSyncConfigured()) after(() => syncRegistrationDestinations());
     return adminJson({ success: true, duplicate: result.duplicate }, result.duplicate ? 200 : 201);
   } catch (error) {
     return requestErrorResponse(error instanceof AdminRequestError || error instanceof RegistrationStoreError ? error : new Error("Registration submission failed"));
