@@ -1,0 +1,41 @@
+.section { position: relative; min-width: 0; padding-top: 100px; padding-bottom: 80px; color: var(--color-kit-purple); }
+.heading { margin: 0 40px; color: var(--color-kit-pink); text-align: center; text-transform: uppercase; font-family: var(--font-display); font-size: 46px; font-weight: 800; line-height: 1.05; text-wrap: balance; }
+.social:focus-visible { outline: 3px solid var(--color-kit-purple); outline-offset: 5px; }
+.viewport { overflow: hidden; margin-top: 36px; }
+.track { display: flex; width: max-content; animation: informationMarquee var(--information-duration) linear infinite; }
+.group { display: flex; flex-shrink: 0; gap: 10px; padding-right: 10px; }
+.card { flex: 0 0 320px; width: 320px; min-width: 0; text-align: center; }
+.portrait { position: relative; width: 270px; aspect-ratio: 1; margin-inline: auto; border-radius: 50%; overflow: hidden; background: var(--color-kit-lavender); }
+.portrait img { object-fit: cover; object-position: center; }
+.name { margin: 24px 0 0; font-family: var(--font-display); font-size: 25px; font-weight: 800; line-height: 1.1; text-transform: uppercase; overflow-wrap: anywhere; }
+.job { margin: 10px 0 0; color: #555; font: 400 18px/1.25 var(--font-body), sans-serif; overflow-wrap: anywhere; }
+.social { position: relative; display: inline-block; max-width: calc(100% - 48px); margin-top: 18px; color: var(--color-kit-purple); font: 500 16px/1.3 var(--font-body), sans-serif; text-decoration: underline; text-underline-offset: 4px; overflow-wrap: anywhere; }
+.social svg { position: absolute; left: calc(100% + 8px); top: calc(50% + 2px); transform: translateY(-50%); }
+.social:hover { color: #811db5; }
+.section[data-running="false"] .track, .viewport:hover .track { animation-play-state: paused; }
+@keyframes informationMarquee { to { transform: translateX(-50%); } }
+
+/* Keyboard navigation reveals the original cards without moving focused links. */
+.viewport:focus-within { overflow: visible; padding-inline: 40px; }
+.viewport:focus-within .track, .section[data-static="true"] .track { width: 100%; animation: none; transform: none; }
+.viewport:focus-within .group, .section[data-static="true"] .group { width: 100%; justify-content: center; flex-wrap: wrap; padding: 0; }
+.viewport:focus-within .duplicate, .viewport:focus-within .filler { display: none; }
+
+@media (max-width: 767px) {
+  .section { padding-top: 60px; padding-bottom: 50px; }
+  .heading { margin-inline: 20px; font-size: 25px; line-height: 1.05; }
+  .viewport { margin-top: 26px; }
+  .group { gap: 30px; padding-right: 30px; }
+  .card { flex-basis: 200px; width: 200px; }
+  .portrait { width: 200px; }
+  .name { font-size: 18px; margin-top: 20px; }
+  .job { font-size: 14px; }
+  .social { margin-top: 14px; font-size: 14px; }
+  .viewport:focus-within { padding-inline: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .viewport { overflow: visible; padding-inline: 20px; }
+  .track { width: 100%; animation: none; }
+  .group { width: 100%; justify-content: center; flex-wrap: wrap; padding: 0; }
+  .duplicate, .filler { display: none; }
+}

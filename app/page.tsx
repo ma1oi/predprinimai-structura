@@ -2,12 +2,14 @@ import { FestivalHeader, HeroSection, CountdownSection, HistorySection } from "@
 import { AboutSection, PartnersSection } from "@/components/sections/about-partners";
 import { ScheduleSection, SpeakersSection } from "@/components/sections/schedule-speakers";
 import { RegistrationSection, FestivalFooter } from "@/components/sections/registration-footer";
+import { InformationPartnersSection } from "@/components/sections/information-partners";
 import "./festival.css";
 import { connection } from "next/server";
 import { getPublishedSpeakers } from "@/lib/speaker-store";
 import { getProgramSpeakers } from "@/lib/program-speaker-store";
 import { getPublishedPartners } from "@/lib/partner-store";
 import { getPublishedPredictions } from "@/lib/prediction-store";
+import { getPublishedInformationPartners } from "@/lib/information-partner-store";
 import type { Metadata } from "next";
 import { festivalStructuredData, site } from "@/lib/site-metadata";
 
@@ -39,7 +41,7 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   await connection();
-  const [speakers, programSpeakers, partners, predictions] = await Promise.all([getPublishedSpeakers(), getProgramSpeakers(), getPublishedPartners(), getPublishedPredictions()]);
+  const [speakers, programSpeakers, partners, predictions, informationPartners] = await Promise.all([getPublishedSpeakers(), getProgramSpeakers(), getPublishedPartners(), getPublishedPredictions(), getPublishedInformationPartners()]);
   return (
     <div className="festival-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(festivalStructuredData).replace(/</g, "\\u003c") }} />
@@ -53,6 +55,7 @@ export default async function Page() {
       <div className="festival-schedule"><ScheduleSection initialProgramSpeakers={programSpeakers} /></div>
       <SpeakersSection initialSpeakers={speakers} />
       <div className="festival-registration"><RegistrationSection initialPredictions={predictions} /></div>
+      <InformationPartnersSection initialPartners={informationPartners} />
       </main>
       <FestivalFooter />
     </div>

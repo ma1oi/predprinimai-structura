@@ -128,6 +128,8 @@
 .programPresenter { min-width: 0; margin: 22px 0 0; padding: 18px 0 0; border: 0; border-top: 1px solid #d9d2e5; }
 .programPresenter legend { padding: 0 10px 0 0; font-weight: 500; }
 .carouselAdmin { margin-top: 48px; }
+.informationPhotoPreview { position: relative; width: 180px; height: 180px; max-width: 100%; margin-bottom: 18px; border-radius: 50%; overflow: hidden; background: var(--color-kit-lavender); display: grid; place-items: center; color: var(--admin-muted); }
+.informationPhotoPreview img { object-fit: cover; }
 .unsavedDot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .registrationHeading { align-items: flex-start; }
 .registrationHeading > div:first-child { min-width: 0; }
